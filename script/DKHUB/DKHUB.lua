@@ -1,72 +1,107 @@
--- DKHUB CLEAN DASHBOARD UI
--- Polished visual-only dashboard. TEST switches are intentionally non-functional.
+-- DKHUB CYBERPUNK NEON UI
+-- Visual-only interface. TEST switches change appearance only and do not run game actions.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-local previous = playerGui:FindFirstChild("DKHUB_CLEAN_DASHBOARD")
-if previous then previous:Destroy() end
+local old = playerGui:FindFirstChild("DKHUB_CYBERPUNK")
+if old then old:Destroy() end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "DKHUB_CLEAN_DASHBOARD"
+gui.Name = "DKHUB_CYBERPUNK"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
 local C = {
-    black = Color3.fromRGB(6, 7, 11),
-    sidebar = Color3.fromRGB(10, 11, 17),
-    panel = Color3.fromRGB(16, 17, 25),
-    card = Color3.fromRGB(24, 25, 36),
-    cardHover = Color3.fromRGB(34, 30, 46),
-    red = Color3.fromRGB(226, 39, 66),
-    pink = Color3.fromRGB(255, 86, 142),
-    purple = Color3.fromRGB(133, 78, 255),
-    white = Color3.fromRGB(255, 255, 255),
-    text = Color3.fromRGB(226, 226, 239),
-    muted = Color3.fromRGB(144, 146, 168),
-    off = Color3.fromRGB(49, 50, 63),
+    black = Color3.fromRGB(3, 5, 12),
+    deep = Color3.fromRGB(7, 9, 19),
+    panel = Color3.fromRGB(10, 13, 27),
+    card = Color3.fromRGB(13, 17, 35),
+    red = Color3.fromRGB(255, 25, 94),
+    magenta = Color3.fromRGB(255, 50, 180),
+    purple = Color3.fromRGB(122, 61, 255),
+    blue = Color3.fromRGB(25, 174, 255),
+    cyan = Color3.fromRGB(29, 235, 255),
+    white = Color3.fromRGB(242, 247, 255),
+    text = Color3.fromRGB(205, 216, 245),
+    muted = Color3.fromRGB(105, 124, 170),
+    off = Color3.fromRGB(25, 35, 63),
 }
 
-local function round(obj, radius)
+local function round(o, r)
     local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, radius)
-    c.Parent = obj
+    c.CornerRadius = UDim.new(0, r)
+    c.Parent = o
 end
 
-local function line(obj, color, thickness, transparency)
+local function stroke(o, color, thickness, transparency)
     local s = Instance.new("UIStroke")
     s.Color = color
     s.Thickness = thickness or 1
     s.Transparency = transparency or 0
-    s.Parent = obj
+    s.Parent = o
     return s
 end
 
-local function move(obj, duration, props, style)
-    local t = TweenService:Create(obj, TweenInfo.new(duration, style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props)
+local function tween(o, duration, props, style, direction)
+    local t = TweenService:Create(o, TweenInfo.new(duration, style or Enum.EasingStyle.Quint, direction or Enum.EasingDirection.Out), props)
     t:Play()
     return t
 end
 
-local function text(parent, name, value, position, size, font, textSize, color, align)
-    local label = Instance.new("TextLabel")
-    label.Name = name
-    label.Text = value
-    label.Position = position
-    label.Size = size
-    label.BackgroundTransparency = 1
-    label.Font = font or Enum.Font.Gotham
-    label.TextSize = textSize or 14
-    label.TextColor3 = color or C.text
-    label.TextXAlignment = align or Enum.TextXAlignment.Left
-    label.TextYAlignment = Enum.TextYAlignment.Center
-    label.ZIndex = 10
-    label.Parent = parent
-    return label
+local function makeText(parent, name, value, position, size, font, textSize, color, align)
+    local l = Instance.new("TextLabel")
+    l.Name = name
+    l.Text = value
+    l.Position = position
+    l.Size = size
+    l.BackgroundTransparency = 1
+    l.Font = font or Enum.Font.Gotham
+    l.TextSize = textSize or 14
+    l.TextColor3 = color or C.text
+    l.TextXAlignment = align or Enum.TextXAlignment.Left
+    l.TextYAlignment = Enum.TextYAlignment.Center
+    l.ZIndex = 10
+    l.Parent = parent
+    return l
 end
+
+local function makeGradient(parent, name, points, rotation)
+    local g = Instance.new("UIGradient")
+    g.Name = name
+    g.Color = ColorSequence.new(points)
+    g.Rotation = rotation or 0
+    g.Parent = parent
+    return g
+end
+
+-- Large mobile panel with a narrow margin.
+local aura = Instance.new("Frame")
+aura.Name = "NeonAura"
+aura.AnchorPoint = Vector2.new(0.5, 0.5)
+aura.Position = UDim2.fromScale(0.5, 0.5)
+aura.Size = UDim2.fromScale(0.97, 0.91)
+aura.BackgroundColor3 = C.magenta
+aura.BackgroundTransparency = 0.93
+aura.BorderSizePixel = 0
+aura.ZIndex = 0
+aura.Parent = gui
+round(aura, 18)
+makeGradient(aura, "AuraGradient", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.45, C.purple),
+    ColorSequenceKeypoint.new(1, C.blue),
+}, 20)
+
+task.spawn(function()
+    while gui.Parent do
+        tween(aura, 2.5, {BackgroundTransparency = 0.97, Size = UDim2.fromScale(0.985, 0.925)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+        tween(aura, 2.5, {BackgroundTransparency = 0.91, Size = UDim2.fromScale(0.97, 0.91)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+    end
+end)
 
 local shadow = Instance.new("Frame")
 shadow.Name = "Shadow"
@@ -74,136 +109,133 @@ shadow.AnchorPoint = Vector2.new(0.5, 0.5)
 shadow.Position = UDim2.fromScale(0.5, 0.505)
 shadow.Size = UDim2.fromScale(0.955, 0.895)
 shadow.BackgroundColor3 = Color3.new(0, 0, 0)
-shadow.BackgroundTransparency = 0.25
+shadow.BackgroundTransparency = 0.15
 shadow.BorderSizePixel = 0
 shadow.ZIndex = 1
 shadow.Parent = gui
-round(shadow, 22)
+round(shadow, 16)
 
 local window = Instance.new("Frame")
-window.Name = "Window"
+window.Name = "DKHUB"
 window.AnchorPoint = Vector2.new(0.5, 0.5)
 window.Position = UDim2.fromScale(0.5, 0.5)
 window.Size = UDim2.fromScale(0.94, 0.88)
-window.BackgroundColor3 = C.panel
+window.BackgroundColor3 = C.deep
 window.BorderSizePixel = 0
 window.ClipsDescendants = true
 window.ZIndex = 2
 window.Parent = gui
-round(window, 20)
-local windowLine = line(window, C.red, 2, 0.08)
-
-local backgroundGradient = Instance.new("UIGradient")
-backgroundGradient.Name = "BackgroundGradient"
-backgroundGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(26, 15, 34)),
-    ColorSequenceKeypoint.new(0.46, C.panel),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 16, 28)),
-})
-backgroundGradient.Rotation = 125
-backgroundGradient.Parent = window
+round(window, 14)
+local windowStroke = stroke(window, C.magenta, 2, 0)
+local edgeGradient = makeGradient(windowStroke, "EdgeFlow", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.25, C.magenta),
+    ColorSequenceKeypoint.new(0.50, C.blue),
+    ColorSequenceKeypoint.new(0.75, C.purple),
+    ColorSequenceKeypoint.new(1, C.red),
+}, 0)
 
 task.spawn(function()
     while gui.Parent do
-        move(backgroundGradient, 4, {Offset = Vector2.new(0.28, 0)}, Enum.EasingStyle.Sine).Completed:Wait()
-        move(backgroundGradient, 4, {Offset = Vector2.new(-0.28, 0)}, Enum.EasingStyle.Sine).Completed:Wait()
+        edgeGradient.Offset = Vector2.new(-1, 0)
+        tween(edgeGradient, 1.35, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+        task.wait(0.35)
     end
 end)
 
 -- Header.
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 62)
+header.Size = UDim2.new(1, 0, 0, 54)
 header.BackgroundColor3 = C.black
-header.BackgroundTransparency = 0.02
 header.BorderSizePixel = 0
 header.ZIndex = 5
 header.Parent = window
+local topLine = Instance.new("Frame")
+topLine.Name = "TopNeonLine"
+topLine.Position = UDim2.fromScale(0.03, 1)
+topLine.Size = UDim2.fromScale(0.94, 0.012)
+topLine.BackgroundColor3 = C.magenta
+topLine.BorderSizePixel = 0
+topLine.ZIndex = 12
+topLine.Parent = header
+makeGradient(topLine, "TopLineGradient", {
+    ColorSequenceKeypoint.new(0, C.blue),
+    ColorSequenceKeypoint.new(0.5, C.magenta),
+    ColorSequenceKeypoint.new(1, C.red),
+}, 0)
 
-local title = text(header, "Title", "DKHUB", UDim2.fromOffset(22, 6), UDim2.new(0.45, 0, 0, 30), Enum.Font.GothamBlack, 25, C.white)
-local titleGradient = Instance.new("UIGradient")
-titleGradient.Name = "TitleGradient"
-titleGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, C.white),
-    ColorSequenceKeypoint.new(0.48, C.pink),
-    ColorSequenceKeypoint.new(0.75, C.purple),
-    ColorSequenceKeypoint.new(1, C.white),
-})
-titleGradient.Parent = title
-
+local logo = makeText(header, "Logo", "DKHUB", UDim2.fromOffset(20, 4), UDim2.new(0.55, 0, 0, 29), Enum.Font.GothamBlack, 23, C.white)
+local logoGradient = makeGradient(logo, "LogoGradient", {
+    ColorSequenceKeypoint.new(0, C.magenta),
+    ColorSequenceKeypoint.new(0.48, C.white),
+    ColorSequenceKeypoint.new(1, C.blue),
+}, 0)
 task.spawn(function()
     while gui.Parent do
-        titleGradient.Offset = Vector2.new(-1, 0)
-        move(titleGradient, 2.2, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
-        task.wait(0.6)
+        logoGradient.Offset = Vector2.new(-1, 0)
+        tween(logoGradient, 2, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+        task.wait(0.45)
     end
 end)
-text(header, "Subtitle", "CLEAN VISUAL DASHBOARD", UDim2.fromOffset(24, 38), UDim2.new(0.65, 0, 0, 13), Enum.Font.GothamMedium, 9, C.muted)
+makeText(header, "HeaderTag", "CYBERPUNK // TEST BUILD", UDim2.fromOffset(22, 31), UDim2.new(0.60, 0, 0, 12), Enum.Font.GothamMedium, 8, C.muted)
 
-local function headerButton(name, symbol, offset)
+local function headerButton(name, symbol, x)
     local b = Instance.new("TextButton")
     b.Name = name
     b.AnchorPoint = Vector2.new(1, 0.5)
-    b.Position = UDim2.new(1, offset, 0.5, 0)
-    b.Size = UDim2.fromOffset(39, 37)
-    b.BackgroundColor3 = C.card
+    b.Position = UDim2.new(1, x, 0.5, 0)
+    b.Size = UDim2.fromOffset(35, 33)
+    b.BackgroundColor3 = C.panel
     b.AutoButtonColor = false
     b.BorderSizePixel = 0
     b.Font = Enum.Font.GothamBold
     b.Text = symbol
     b.TextColor3 = C.white
-    b.TextSize = 18
-    b.ZIndex = 12
+    b.TextSize = 16
+    b.ZIndex = 14
     b.Parent = header
-    round(b, 10)
-    local bLine = line(b, C.red, 1, 0.50)
-    b.MouseEnter:Connect(function() move(b, 0.15, {BackgroundColor3 = C.red}); move(bLine, 0.15, {Transparency = 0}) end)
-    b.MouseLeave:Connect(function() move(b, 0.15, {BackgroundColor3 = C.card}); move(bLine, 0.15, {Transparency = 0.50}) end)
+    round(b, 7)
+    local s = stroke(b, C.blue, 1, 0.35)
+    b.MouseEnter:Connect(function() tween(b, 0.14, {BackgroundColor3 = C.red}); tween(s, 0.14, {Transparency = 0}) end)
+    b.MouseLeave:Connect(function() tween(b, 0.14, {BackgroundColor3 = C.panel}); tween(s, 0.14, {Transparency = 0.35}) end)
     return b
 end
 
-local minimize = headerButton("Minimize", "□", -60)
-local close = headerButton("Close", "×", -12)
-local headerLine = Instance.new("Frame")
-headerLine.Name = "HeaderLine"
-headerLine.Position = UDim2.new(0, 20, 1, -1)
-headerLine.Size = UDim2.new(1, -40, 0, 1)
-headerLine.BackgroundColor3 = C.red
-headerLine.BorderSizePixel = 0
-headerLine.ZIndex = 13
-headerLine.Parent = header
+local minimize = headerButton("Minimize", "□", -53)
+local close = headerButton("Close", "×", -10)
 
--- Sidebar.
-local sidebar = Instance.new("Frame")
-sidebar.Name = "Sidebar"
-sidebar.Position = UDim2.fromOffset(0, 62)
-sidebar.Size = UDim2.new(0.225, 0, 1, -62)
-sidebar.BackgroundColor3 = C.sidebar
-sidebar.BorderSizePixel = 0
-sidebar.ZIndex = 6
-sidebar.Parent = window
+-- Navigation rail.
+local rail = Instance.new("Frame")
+rail.Name = "NavigationRail"
+rail.Position = UDim2.fromOffset(0, 54)
+rail.Size = UDim2.new(0.18, 0, 1, -54)
+rail.BackgroundColor3 = C.black
+rail.BorderSizePixel = 0
+rail.ZIndex = 6
+rail.Parent = window
+local railLine = Instance.new("Frame")
+railLine.Name = "RailLine"
+railLine.Position = UDim2.new(1, -1, 0, 12)
+railLine.Size = UDim2.new(0, 1, 1, -24)
+railLine.BackgroundColor3 = C.purple
+railLine.BackgroundTransparency = 0.30
+railLine.BorderSizePixel = 0
+railLine.ZIndex = 12
+railLine.Parent = rail
 
-text(sidebar, "Menu", "MENU", UDim2.fromScale(0.16, 0.07), UDim2.fromScale(0.68, 0.06), Enum.Font.GothamBold, 10, C.red)
-local sideLine = Instance.new("Frame")
-sideLine.Position = UDim2.new(1, -1, 0, 14)
-sideLine.Size = UDim2.new(0, 1, 1, -28)
-sideLine.BackgroundColor3 = C.red
-sideLine.BackgroundTransparency = 0.45
-sideLine.BorderSizePixel = 0
-sideLine.ZIndex = 9
-sideLine.Parent = sidebar
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Position = UDim2.new(0.18, 0, 0, 54)
+main.Size = UDim2.new(0.82, 0, 1, -54)
+main.BackgroundTransparency = 1
+main.BorderSizePixel = 0
+main.ZIndex = 4
+main.Parent = window
 
-local content = Instance.new("Frame")
-content.Name = "Content"
-content.Position = UDim2.new(0.225, 0, 0, 62)
-content.Size = UDim2.new(0.775, 0, 1, -62)
-content.BackgroundTransparency = 1
-content.BorderSizePixel = 0
-content.ZIndex = 4
-content.Parent = window
-
-local pages = {}
+makeText(rail, "RailTitle", "NAV", UDim2.fromScale(0.22, 0.06), UDim2.fromScale(0.56, 0.06), Enum.Font.GothamBold, 9, C.blue, Enum.TextXAlignment.Center)
 local tabs = {}
+local pages = {}
 local function page(name)
     local p = Instance.new("Frame")
     p.Name = name .. "Page"
@@ -211,152 +243,179 @@ local function page(name)
     p.BackgroundTransparency = 1
     p.Visible = false
     p.ZIndex = 5
-    p.Parent = content
+    p.Parent = main
     pages[name] = p
     return p
 end
-
 local home = page("Home")
 local chain = page("Chain")
 local settings = page("Settings")
 
-local function nav(name, symbol, caption, y)
+local function navButton(name, symbol, caption, y)
     local b = Instance.new("TextButton")
-    b.Name = name .. "Button"
-    b.Position = UDim2.fromScale(0.13, y)
-    b.Size = UDim2.fromScale(0.74, 0.115)
-    b.BackgroundColor3 = C.sidebar
+    b.Name = name .. "Nav"
+    b.Position = UDim2.fromScale(0.18, y)
+    b.Size = UDim2.fromScale(0.64, 0.12)
+    b.BackgroundColor3 = C.black
     b.AutoButtonColor = false
     b.BorderSizePixel = 0
     b.Text = ""
-    b.ZIndex = 12
-    b.Parent = sidebar
-    round(b, 10)
-    local ico = text(b, "Icon", symbol, UDim2.fromScale(0.08, 0.10), UDim2.fromScale(0.27, 0.80), Enum.Font.GothamBold, 21, C.muted, Enum.TextXAlignment.Center)
-    local cap = text(b, "Caption", caption, UDim2.fromScale(0.40, 0.12), UDim2.fromScale(0.53, 0.76), Enum.Font.GothamSemibold, 11, C.muted)
+    b.ZIndex = 13
+    b.Parent = rail
+    round(b, 8)
+    local ico = makeText(b, "Icon", symbol, UDim2.fromScale(0.08, 0.08), UDim2.fromScale(0.84, 0.45), Enum.Font.GothamBold, 22, C.muted, Enum.TextXAlignment.Center)
+    local cap = makeText(b, "Caption", caption, UDim2.fromScale(0.06, 0.51), UDim2.fromScale(0.88, 0.31), Enum.Font.GothamBold, 8, C.muted, Enum.TextXAlignment.Center)
     tabs[name] = {button = b, icon = ico, caption = cap}
     return b
 end
+local homeNav = navButton("Home", "⌂", "HOME", 0.16)
+local chainNav = navButton("Chain", "⛓", "CHAIN", 0.32)
+local settingsNav = navButton("Settings", "⚙", "SETTINGS", 0.48)
+makeText(rail, "RailFooter", "v2.0", UDim2.fromScale(0.20, 0.91), UDim2.fromScale(0.60, 0.05), Enum.Font.GothamMedium, 8, C.muted, Enum.TextXAlignment.Center)
 
-local homeButton = nav("Home", "⌂", "HOME", 0.17)
-local chainButton = nav("Chain", "⛓", "CHAIN", 0.31)
-local settingsButton = nav("Settings", "⚙", "SETTINGS", 0.45)
-text(sidebar, "Footer", "DKHUB / UI", UDim2.fromScale(0.16, 0.91), UDim2.fromScale(0.68, 0.05), Enum.Font.GothamMedium, 9, C.muted)
-
-local function activePage(name)
+local function activate(name)
     for n, data in pairs(tabs) do
         local on = n == name
-        move(data.button, 0.18, {BackgroundColor3 = on and C.red or C.sidebar})
-        move(data.icon, 0.18, {TextColor3 = on and C.white or C.muted})
-        move(data.caption, 0.18, {TextColor3 = on and C.white or C.muted})
+        tween(data.button, 0.16, {BackgroundColor3 = on and C.red or C.black})
+        tween(data.icon, 0.16, {TextColor3 = on and C.white or C.muted})
+        tween(data.caption, 0.16, {TextColor3 = on and C.white or C.muted})
     end
     for n, p in pairs(pages) do p.Visible = n == name end
 end
 
-local function pageHeader(parent, heading, description)
-    text(parent, "Heading", heading, UDim2.fromScale(0.08, 0.09), UDim2.fromScale(0.84, 0.10), Enum.Font.GothamBold, 22, C.white)
-    text(parent, "Description", description, UDim2.fromScale(0.08, 0.19), UDim2.fromScale(0.84, 0.07), Enum.Font.Gotham, 10, C.muted)
+local function pageTitle(parent, titleValue, subtitleValue)
+    local h = makeText(parent, "PageTitle", titleValue, UDim2.fromScale(0.07, 0.07), UDim2.fromScale(0.86, 0.11), Enum.Font.GothamBlack, 25, C.white)
+    local hGradient = makeGradient(h, "PageTitleGradient", {
+        ColorSequenceKeypoint.new(0, C.white),
+        ColorSequenceKeypoint.new(0.55, C.cyan),
+        ColorSequenceKeypoint.new(1, C.magenta),
+    }, 0)
+    task.spawn(function()
+        while gui.Parent do
+            hGradient.Offset = Vector2.new(-1, 0)
+            tween(hGradient, 2.4, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+            task.wait(0.6)
+        end
+    end)
+    makeText(parent, "PageSubtitle", subtitleValue, UDim2.fromScale(0.08, 0.18), UDim2.fromScale(0.84, 0.07), Enum.Font.Gotham, 10, C.muted)
 end
 
-local function card(parent, name, caption, position, height)
-    local c = Instance.new("Frame")
-    c.Name = name
-    c.Position = position
-    c.Size = UDim2.fromScale(0.84, height or 0.13)
-    c.BackgroundColor3 = C.card
-    c.BackgroundTransparency = 0.08
-    c.BorderSizePixel = 0
-    c.ZIndex = 8
-    c.Parent = parent
-    round(c, 11)
-    line(c, C.red, 1, 0.70)
-    text(c, "Caption", caption, UDim2.fromScale(0.06, 0.12), UDim2.fromScale(0.72, 0.35), Enum.Font.GothamSemibold, 12, C.text)
-    return c
+local function panel(parent, name, position, size)
+    local p = Instance.new("Frame")
+    p.Name = name
+    p.Position = position
+    p.Size = size
+    p.BackgroundColor3 = C.card
+    p.BackgroundTransparency = 0.10
+    p.BorderSizePixel = 0
+    p.ZIndex = 8
+    p.Parent = parent
+    round(p, 8)
+    local s = stroke(p, C.blue, 1, 0.55)
+    return p, s
 end
 
--- HOME: clean info cards and intentionally inactive test switches.
-pageHeader(home, "HOME", "Overview and visual test controls")
-local statusCard = card(home, "StatusCard", "INTERFACE STATUS", UDim2.fromScale(0.08, 0.31), 0.16)
-text(statusCard, "Status", "READY", UDim2.fromScale(0.06, 0.48), UDim2.fromScale(0.45, 0.32), Enum.Font.GothamBold, 14, Color3.fromRGB(75, 220, 145))
-text(statusCard, "StatusHint", "Visual-only mode", UDim2.fromScale(0.53, 0.48), UDim2.fromScale(0.40, 0.32), Enum.Font.Gotham, 10, C.muted, Enum.TextXAlignment.Right)
-
-local function testSwitch(parent, name, caption, position, default)
-    local row = card(parent, name, caption, position, 0.105)
+local function testToggle(parent, name, caption, pos)
+    local row = panel(parent, name, pos, UDim2.fromScale(0.88, 0.14))
+    makeText(row, "Caption", caption, UDim2.fromScale(0.07, 0.18), UDim2.fromScale(0.62, 0.30), Enum.Font.GothamBold, 11, C.text)
+    makeText(row, "Hint", "TEST / VISUAL ONLY", UDim2.fromScale(0.07, 0.54), UDim2.fromScale(0.62, 0.20), Enum.Font.GothamMedium, 8, C.muted)
     local button = Instance.new("TextButton")
-    button.Name = "TestSwitch"
-    button.Position = UDim2.fromScale(0.80, 0.25)
-    button.Size = UDim2.fromScale(0.14, 0.50)
-    button.BackgroundColor3 = default and C.red or C.off
+    button.Name = "Switch"
+    button.Position = UDim2.fromScale(0.78, 0.28)
+    button.Size = UDim2.fromScale(0.16, 0.44)
+    button.BackgroundColor3 = C.red
     button.AutoButtonColor = false
     button.BorderSizePixel = 0
     button.Text = ""
-    button.ZIndex = 13
+    button.ZIndex = 15
     button.Parent = row
     round(button, 20)
     local knob = Instance.new("Frame")
     knob.Name = "Knob"
-    knob.Size = UDim2.fromScale(0.38, 0.72)
-    knob.Position = default and UDim2.fromScale(0.57, 0.14) or UDim2.fromScale(0.05, 0.14)
+    knob.Size = UDim2.fromScale(0.40, 0.72)
+    knob.Position = UDim2.fromScale(0.55, 0.14)
     knob.BackgroundColor3 = C.white
     knob.BorderSizePixel = 0
-    knob.ZIndex = 14
+    knob.ZIndex = 16
     knob.Parent = button
     round(knob, 20)
-    local state = default
+    local state = true
     button.MouseButton1Click:Connect(function()
         state = not state
-        move(button, 0.18, {BackgroundColor3 = state and C.red or C.off})
-        move(knob, 0.18, {Position = state and UDim2.fromScale(0.57, 0.14) or UDim2.fromScale(0.05, 0.14)})
-        -- Intentionally no action: TEST switch is visual-only.
+        tween(button, 0.18, {BackgroundColor3 = state and C.red or C.off})
+        tween(knob, 0.18, {Position = state and UDim2.fromScale(0.55, 0.14) or UDim2.fromScale(0.05, 0.14)})
+        -- Intentionally no functional action.
     end)
 end
 
-testSwitch(home, "TestOne", "TEST SWITCH 01", UDim2.fromScale(0.08, 0.52), true)
-testSwitch(home, "TestTwo", "TEST SWITCH 02", UDim2.fromScale(0.08, 0.65), false)
-testSwitch(home, "TestThree", "TEST SWITCH 03", UDim2.fromScale(0.08, 0.78), true)
+-- HOME PAGE.
+pageTitle(home, "TEST", "CYBERPUNK CONTROL CENTER  //  VISUAL PREVIEW")
+local hero, heroStroke = panel(home, "Hero", UDim2.fromScale(0.07, 0.30), UDim2.fromScale(0.88, 0.23))
+heroStroke.Color = C.magenta
+makeText(hero, "HeroSmall", "DKHUB // SYSTEM ONLINE", UDim2.fromScale(0.06, 0.14), UDim2.fromScale(0.80, 0.18), Enum.Font.GothamBold, 9, C.pink)
+makeText(hero, "HeroTitle", "YOUR SPACE. YOUR CONTROL.", UDim2.fromScale(0.06, 0.34), UDim2.fromScale(0.88, 0.30), Enum.Font.GothamBlack, 18, C.white)
+makeText(hero, "HeroSub", "A clean visual framework for future modules.", UDim2.fromScale(0.06, 0.70), UDim2.fromScale(0.88, 0.16), Enum.Font.Gotham, 9, C.muted)
+makeGradient(hero, "HeroGradient", {
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 8, 32)),
+    ColorSequenceKeypoint.new(0.55, C.card),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 20, 42)),
+}, 0)
 
--- CHAIN: empty module slots with no actions attached.
-pageHeader(chain, "CHAIN", "Empty modules ready for future design")
-local chainInfo = card(chain, "ChainInfo", "MODULE COLLECTION", UDim2.fromScale(0.08, 0.31), 0.14)
-text(chainInfo, "Info", "0 active modules", UDim2.fromScale(0.06, 0.48), UDim2.fromScale(0.80, 0.32), Enum.Font.Gotham, 11, C.muted)
+testToggle(home, "LaunchTest", "LAUNCH TEST", UDim2.fromScale(0.07, 0.59))
+testToggle(home, "PerformanceTest", "PERFORMANCE TEST", UDim2.fromScale(0.07, 0.75))
+
+-- CHAIN PAGE.
+pageTitle(chain, "CHAIN", "EMPTY MODULE NETWORK  //  READY FOR DESIGN")
+local chainHero, chainStroke = panel(chain, "ChainHero", UDim2.fromScale(0.07, 0.30), UDim2.fromScale(0.88, 0.16))
+chainStroke.Color = C.purple
+makeText(chainHero, "Count", "00", UDim2.fromScale(0.06, 0.17), UDim2.fromScale(0.25, 0.62), Enum.Font.GothamBlack, 24, C.cyan)
+makeText(chainHero, "Label", "ACTIVE MODULES", UDim2.fromScale(0.33, 0.24), UDim2.fromScale(0.56, 0.22), Enum.Font.GothamBold, 10, C.text)
+makeText(chainHero, "Hint", "Everything is empty by design.", UDim2.fromScale(0.33, 0.53), UDim2.fromScale(0.56, 0.20), Enum.Font.Gotham, 9, C.muted)
 for i = 1, 3 do
-    local slot = card(chain, "ModuleSlot" .. i, "MODULE SLOT 0" .. i, UDim2.fromScale(0.08, 0.49 + (i - 1) * 0.14), 0.105)
-    local empty = text(slot, "Empty", "EMPTY", UDim2.fromScale(0.72, 0.20), UDim2.fromScale(0.22, 0.60), Enum.Font.GothamBold, 10, C.muted, Enum.TextXAlignment.Right)
-    slot.MouseEnter:Connect(function() move(slot, 0.15, {BackgroundColor3 = C.cardHover}) end)
-    slot.MouseLeave:Connect(function() move(slot, 0.15, {BackgroundColor3 = C.card}) end)
+    local slot, slotStroke = panel(chain, "Module" .. i, UDim2.fromScale(0.07, 0.51 + (i - 1) * 0.15), UDim2.fromScale(0.88, 0.11))
+    slotStroke.Color = i == 1 and C.red or (i == 2 and C.purple or C.blue)
+    makeText(slot, "Slot", "MODULE 0" .. i, UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.40, 0.30), Enum.Font.GothamBold, 10, C.text)
+    makeText(slot, "Empty", "EMPTY", UDim2.fromScale(0.70, 0.16), UDim2.fromScale(0.23, 0.30), Enum.Font.GothamBold, 9, C.muted, Enum.TextXAlignment.Right)
 end
 
--- SETTINGS: visual-only toggles.
-pageHeader(settings, "SETTINGS", "Customize the appearance of this interface")
-local settingsInfo = card(settings, "SettingsInfo", "VISUAL PREFERENCES", UDim2.fromScale(0.08, 0.31), 0.14)
-text(settingsInfo, "Info", "All controls are UI demonstrations", UDim2.fromScale(0.06, 0.48), UDim2.fromScale(0.84, 0.32), Enum.Font.Gotham, 10, C.muted)
-testSwitch(settings, "SettingOne", "TEST BORDER", UDim2.fromScale(0.08, 0.51), true)
-testSwitch(settings, "SettingTwo", "TEST GLOW", UDim2.fromScale(0.08, 0.64), false)
-testSwitch(settings, "SettingThree", "TEST PARTICLES", UDim2.fromScale(0.08, 0.77), true)
+-- SETTINGS PAGE.
+pageTitle(settings, "SETTINGS", "VISUAL PREFERENCES  //  TEST CONTROLS")
+local settingsHero, settingsStroke = panel(settings, "SettingsHero", UDim2.fromScale(0.07, 0.30), UDim2.fromScale(0.88, 0.16))
+settingsStroke.Color = C.blue
+makeText(settingsHero, "Title", "VISUAL ENGINE", UDim2.fromScale(0.06, 0.17), UDim2.fromScale(0.62, 0.30), Enum.Font.GothamBlack, 16, C.white)
+makeText(settingsHero, "Hint", "Changes below are UI demonstrations only.", UDim2.fromScale(0.06, 0.54), UDim2.fromScale(0.82, 0.20), Enum.Font.Gotham, 9, C.muted)
+testToggle(settings, "BorderTest", "BORDER SHINE", UDim2.fromScale(0.07, 0.51))
+testToggle(settings, "GlowTest", "NEON GLOW", UDim2.fromScale(0.07, 0.67))
+testToggle(settings, "ParticleTest", "LIGHT PARTICLES", UDim2.fromScale(0.07, 0.83))
 
-homeButton.MouseButton1Click:Connect(function() activePage("Home") end)
-chainButton.MouseButton1Click:Connect(function() activePage("Chain") end)
-settingsButton.MouseButton1Click:Connect(function() activePage("Settings") end)
-activePage("Home")
+homeNav.MouseButton1Click:Connect(function() activate("Home") end)
+chainNav.MouseButton1Click:Connect(function() activate("Chain") end)
+settingsNav.MouseButton1Click:Connect(function() activate("Settings") end)
+activate("Home")
 
--- Minimized icon: one tap opens; drag moves it without opening.
+-- Stable minimize behavior.
 local icon = Instance.new("TextButton")
 icon.Name = "DKHUB_Icon"
 icon.AnchorPoint = Vector2.new(0.5, 0.5)
 icon.Position = UDim2.fromScale(0.86, 0.84)
-icon.Size = UDim2.fromOffset(66, 66)
+icon.Size = UDim2.fromOffset(64, 64)
 icon.BackgroundColor3 = C.black
 icon.AutoButtonColor = false
 icon.BorderSizePixel = 0
 icon.Font = Enum.Font.GothamBlack
 icon.Text = "DK"
 icon.TextColor3 = C.white
-icon.TextSize = 19
+icon.TextSize = 18
 icon.Visible = false
-icon.ZIndex = 30
+icon.ZIndex = 40
 icon.Parent = gui
-round(icon, 33)
-local iconLine = line(icon, C.pink, 2, 0)
+round(icon, 32)
+local iconStroke = stroke(icon, C.magenta, 2, 0)
+makeGradient(iconStroke, "IconFlow", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.5, C.blue),
+    ColorSequenceKeypoint.new(1, C.purple),
+}, 0)
 
 local minimized = false
 local closed = false
@@ -367,15 +426,17 @@ local iconOrigin
 
 minimize.MouseButton1Click:Connect(function()
     minimized = true
-    move(window, 0.30, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
-    move(shadow, 0.30, {Position = UDim2.fromScale(0.5, 1.32)}, Enum.EasingStyle.Back)
+    tween(window, 0.28, {Position = UDim2.fromScale(0.5, 1.32)}, Enum.EasingStyle.Back)
+    tween(shadow, 0.28, {Position = UDim2.fromScale(0.5, 1.34)}, Enum.EasingStyle.Back)
+    tween(aura, 0.28, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
     task.delay(0.20, function()
         if minimized and not closed then
             window.Visible = false
             shadow.Visible = false
+            aura.Visible = false
             icon.Visible = true
             icon.Size = UDim2.fromOffset(8, 8)
-            move(icon, 0.30, {Size = UDim2.fromOffset(66, 66)}, Enum.EasingStyle.Back)
+            tween(icon, 0.30, {Size = UDim2.fromOffset(64, 64)}, Enum.EasingStyle.Back)
         end
     end)
 end)
@@ -389,16 +450,19 @@ icon.MouseButton1Click:Connect(function()
     icon.Visible = false
     window.Visible = true
     shadow.Visible = true
-    window.Position = UDim2.fromScale(0.5, 1.30)
-    shadow.Position = UDim2.fromScale(0.5, 1.32)
-    move(window, 0.38, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
-    move(shadow, 0.38, {Position = UDim2.fromScale(0.5, 0.505)}, Enum.EasingStyle.Back)
+    aura.Visible = true
+    window.Position = UDim2.fromScale(0.5, 1.32)
+    shadow.Position = UDim2.fromScale(0.5, 1.34)
+    aura.Position = UDim2.fromScale(0.5, 1.30)
+    tween(window, 0.36, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
+    tween(shadow, 0.36, {Position = UDim2.fromScale(0.5, 0.505)}, Enum.EasingStyle.Back)
+    tween(aura, 0.36, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
 end)
 
 close.MouseButton1Click:Connect(function()
     closed = true
-    move(window, 0.25, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
-    move(shadow, 0.25, {Position = UDim2.fromScale(0.5, 1.37)}, Enum.EasingStyle.Back)
+    tween(window, 0.25, {Position = UDim2.fromScale(0.5, 1.38)}, Enum.EasingStyle.Back)
+    tween(shadow, 0.25, {Position = UDim2.fromScale(0.5, 1.40)}, Enum.EasingStyle.Back)
     task.delay(0.30, function() if closed then gui:Destroy() end end)
 end)
 
@@ -420,7 +484,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Drag the main window from its header.
+-- Drag main window by its header.
 local dragging = false
 local dragStart
 local windowOrigin
@@ -437,5 +501,6 @@ UserInputService.InputChanged:Connect(function(input)
         local d = input.Position - dragStart
         window.Position = UDim2.new(windowOrigin.X.Scale, windowOrigin.X.Offset + d.X, windowOrigin.Y.Scale, windowOrigin.Y.Offset + d.Y)
         shadow.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset + 5)
+        aura.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset)
     end
 end)
