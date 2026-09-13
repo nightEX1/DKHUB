@@ -1,374 +1,437 @@
--- DKHUB PREMIUM VISUAL UI
--- Visual-only UI kit: no game functions, automation, callbacks or executor logic.
+-- DKHUB MOBILE TEST UI
+-- Large mobile-friendly visual UI with TEST switches.
+-- Visual-only template: switches control UI effects, not game automation.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-local old = playerGui:FindFirstChild("DKHUB_PREMIUM_UI")
+local old = playerGui:FindFirstChild("DKHUB_MOBILE_TEST")
 if old then old:Destroy() end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "DKHUB_PREMIUM_UI"
+gui.Name = "DKHUB_MOBILE_TEST"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
-local P = {
+local C = {
     black = Color3.fromRGB(5, 5, 9),
-    panel = Color3.fromRGB(13, 13, 21),
-    panel2 = Color3.fromRGB(23, 20, 34),
-    red = Color3.fromRGB(224, 36, 67),
-    pink = Color3.fromRGB(255, 74, 133),
-    purple = Color3.fromRGB(133, 77, 255),
-    cyan = Color3.fromRGB(70, 206, 255),
+    panel = Color3.fromRGB(14, 14, 21),
+    panel2 = Color3.fromRGB(24, 23, 34),
+    red = Color3.fromRGB(224, 35, 65),
+    pink = Color3.fromRGB(255, 78, 135),
+    purple = Color3.fromRGB(135, 76, 255),
+    cyan = Color3.fromRGB(61, 208, 255),
+    green = Color3.fromRGB(66, 220, 143),
     white = Color3.fromRGB(255, 255, 255),
-    muted = Color3.fromRGB(151, 150, 173),
+    text = Color3.fromRGB(222, 221, 235),
+    muted = Color3.fromRGB(148, 148, 170),
 }
 
-local function corner(parent, radius)
+local function corner(o, r)
     local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, radius)
-    c.Parent = parent
+    c.CornerRadius = UDim.new(0, r)
+    c.Parent = o
 end
 
-local function stroke(parent, color, thickness, transparency)
+local function addStroke(o, color, thickness, transparency)
     local s = Instance.new("UIStroke")
     s.Color = color
     s.Thickness = thickness
     s.Transparency = transparency or 0
-    s.Parent = parent
+    s.Parent = o
     return s
 end
 
-local function animate(obj, duration, props, style, direction)
+local function tw(o, duration, props, style, direction)
     local info = TweenInfo.new(duration, style or Enum.EasingStyle.Quint, direction or Enum.EasingDirection.Out)
-    local t = TweenService:Create(obj, info, props)
+    local t = TweenService:Create(o, info, props)
     t:Play()
     return t
 end
 
-local function gradient(parent, name, colors, rotation)
+local function addGradient(o, name, colors, rotation)
     local g = Instance.new("UIGradient")
     g.Name = name
     g.Color = ColorSequence.new(colors)
     g.Rotation = rotation or 0
-    g.Parent = parent
+    g.Parent = o
     return g
 end
 
--- Floating atmospheric glow behind the window.
+local function text(parent, name, value, position, size, font, textSize, color)
+    local l = Instance.new("TextLabel")
+    l.Name = name
+    l.Text = value
+    l.Position = position
+    l.Size = size
+    l.BackgroundTransparency = 1
+    l.Font = font or Enum.Font.Gotham
+    l.TextSize = textSize or 14
+    l.TextColor3 = color or C.text
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.ZIndex = 8
+    l.Parent = parent
+    return l
+end
+
+-- Nearly full-screen mobile card; still leaves a thin margin so the game remains visible.
 local aura = Instance.new("Frame")
 aura.Name = "Aura"
 aura.AnchorPoint = Vector2.new(0.5, 0.5)
 aura.Position = UDim2.fromScale(0.5, 0.5)
-aura.Size = UDim2.fromScale(0.80, 0.68)
-aura.BackgroundColor3 = P.red
-aura.BackgroundTransparency = 0.90
+aura.Size = UDim2.fromScale(0.97, 0.91)
+aura.BackgroundColor3 = C.red
+aura.BackgroundTransparency = 0.91
 aura.BorderSizePixel = 0
 aura.ZIndex = 0
 aura.Parent = gui
-corner(aura, 30)
-gradient(aura, "AuraGradient", {
-    ColorSequenceKeypoint.new(0, P.purple),
-    ColorSequenceKeypoint.new(0.5, P.red),
-    ColorSequenceKeypoint.new(1, P.cyan),
+corner(aura, 26)
+addGradient(aura, "AuraGradient", {
+    ColorSequenceKeypoint.new(0, C.purple),
+    ColorSequenceKeypoint.new(0.5, C.red),
+    ColorSequenceKeypoint.new(1, C.cyan),
 }, 25)
-
-task.spawn(function()
-    while gui.Parent do
-        animate(aura, 2.8, {Size = UDim2.fromScale(0.84, 0.72), BackgroundTransparency = 0.94}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-        animate(aura, 2.8, {Size = UDim2.fromScale(0.80, 0.68), BackgroundTransparency = 0.90}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-    end
-end)
 
 local shadow = Instance.new("Frame")
 shadow.Name = "Shadow"
 shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-shadow.Position = UDim2.fromScale(0.5, 0.51)
-shadow.Size = UDim2.fromScale(0.705, 0.575)
+shadow.Position = UDim2.fromScale(0.5, 0.505)
+shadow.Size = UDim2.fromScale(0.955, 0.895)
 shadow.BackgroundColor3 = Color3.new(0, 0, 0)
-shadow.BackgroundTransparency = 0.20
+shadow.BackgroundTransparency = 0.22
 shadow.BorderSizePixel = 0
 shadow.ZIndex = 1
 shadow.Parent = gui
-corner(shadow, 18)
+corner(shadow, 22)
 
-local card = Instance.new("Frame")
-card.Name = "DKHUB"
-card.AnchorPoint = Vector2.new(0.5, 0.5)
-card.Position = UDim2.fromScale(0.5, 0.5)
-card.Size = UDim2.fromScale(0.69, 0.55)
-card.BackgroundColor3 = P.panel
-card.BorderSizePixel = 0
-card.ClipsDescendants = true
-card.ZIndex = 2
-card.Parent = gui
-corner(card, 16)
-local aspect = Instance.new("UIAspectRatioConstraint")
-aspect.AspectRatio = 16 / 9
-aspect.DominantAxis = Enum.DominantAxis.Width
-aspect.Parent = card
+local window = Instance.new("Frame")
+window.Name = "DKHUB"
+window.AnchorPoint = Vector2.new(0.5, 0.5)
+window.Position = UDim2.fromScale(0.5, 0.5)
+window.Size = UDim2.fromScale(0.94, 0.88)
+window.BackgroundColor3 = C.panel
+window.BorderSizePixel = 0
+window.ClipsDescendants = true
+window.ZIndex = 2
+window.Parent = gui
+corner(window, 20)
 
-local cardGradient = gradient(card, "PanelGradient", {
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 14, 30)),
-    ColorSequenceKeypoint.new(0.45, P.panel),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 16, 28)),
+local windowGradient = addGradient(window, "WindowGradient", {
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(26, 14, 34)),
+    ColorSequenceKeypoint.new(0.45, C.panel),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 18, 30)),
 }, 125)
-
-task.spawn(function()
-    while gui.Parent do
-        animate(cardGradient, 3.8, {Offset = Vector2.new(0.35, 0)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-        animate(cardGradient, 3.8, {Offset = Vector2.new(-0.35, 0)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-    end
-end)
-
-local border = stroke(card, P.red, 2, 0.02)
-local borderGradient = gradient(border, "PrismaticBorder", {
-    ColorSequenceKeypoint.new(0, P.red),
-    ColorSequenceKeypoint.new(0.28, P.pink),
-    ColorSequenceKeypoint.new(0.50, P.white),
-    ColorSequenceKeypoint.new(0.72, P.purple),
-    ColorSequenceKeypoint.new(1, P.red),
+local frameStroke = addStroke(window, C.red, 2, 0.02)
+local borderGradient = addGradient(frameStroke, "WhiteShine", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.42, C.red),
+    ColorSequenceKeypoint.new(0.50, C.white),
+    ColorSequenceKeypoint.new(0.58, C.pink),
+    ColorSequenceKeypoint.new(1, C.purple),
 }, 0)
 
+local effects = {
+    gradient = true,
+    border = true,
+    particles = true,
+    pulse = true,
+    glow = true,
+}
+
+-- Premium animations.
 task.spawn(function()
     while gui.Parent do
-        borderGradient.Offset = Vector2.new(-1, 0)
-        animate(borderGradient, 1.55, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut).Completed:Wait()
-        task.wait(0.45)
+        if effects.gradient then
+            tw(windowGradient, 4, {Offset = Vector2.new(0.35, 0)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+            tw(windowGradient, 4, {Offset = Vector2.new(-0.35, 0)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+        else task.wait(0.4) end
     end
 end)
 
--- Decorative light particles.
-for i = 1, 9 do
+task.spawn(function()
+    while gui.Parent do
+        if effects.border then
+            borderGradient.Offset = Vector2.new(-1, 0)
+            tw(borderGradient, 1.5, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+            task.wait(0.45)
+        else task.wait(0.4) end
+    end
+end)
+
+task.spawn(function()
+    while gui.Parent do
+        if effects.glow then
+            tw(aura, 2.4, {BackgroundTransparency = 0.95, Size = UDim2.fromScale(0.985, 0.925)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+            tw(aura, 2.4, {BackgroundTransparency = 0.89, Size = UDim2.fromScale(0.97, 0.91)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+        else task.wait(0.4) end
+    end
+end)
+
+local particles = {}
+for i = 1, 14 do
     local dot = Instance.new("Frame")
-    dot.Name = "LightDot" .. i
+    dot.Name = "TestParticle" .. i
     dot.AnchorPoint = Vector2.new(0.5, 0.5)
-    dot.Position = UDim2.fromScale(0.10 + ((i * 0.097) % 0.80), 0.18 + ((i * 0.173) % 0.66))
-    dot.Size = UDim2.fromOffset(i % 3 + 2, i % 3 + 2)
-    dot.BackgroundColor3 = (i % 2 == 0) and P.pink or P.cyan
-    dot.BackgroundTransparency = 0.35
+    dot.Position = UDim2.fromScale(0.08 + ((i * 0.071) % 0.84), 0.15 + ((i * 0.117) % 0.72))
+    dot.Size = UDim2.fromOffset(2 + i % 3, 2 + i % 3)
+    dot.BackgroundColor3 = i % 2 == 0 and C.pink or C.cyan
+    dot.BackgroundTransparency = 0.32
     dot.BorderSizePixel = 0
-    dot.ZIndex = 3
-    dot.Parent = card
-    corner(dot, 8)
+    dot.ZIndex = 4
+    dot.Parent = window
+    corner(dot, 9)
+    table.insert(particles, dot)
     task.spawn(function()
         while gui.Parent do
-            animate(dot, 1.4 + (i * 0.08), {BackgroundTransparency = 0.85, Size = UDim2.fromOffset(5, 5)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-            animate(dot, 1.4 + (i * 0.08), {BackgroundTransparency = 0.35, Size = UDim2.fromOffset(i % 3 + 2, i % 3 + 2)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+            if effects.particles then
+                tw(dot, 1.2 + i * 0.04, {BackgroundTransparency = 0.88, Size = UDim2.fromOffset(6, 6)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+                tw(dot, 1.2 + i * 0.04, {BackgroundTransparency = 0.32, Size = UDim2.fromOffset(2 + i % 3, 2 + i % 3)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+            else task.wait(0.4) end
         end
     end)
 end
 
+-- Header.
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 54)
-header.BackgroundColor3 = P.black
-header.BackgroundTransparency = 0.04
+header.Size = UDim2.new(1, 0, 0, 62)
+header.BackgroundColor3 = C.black
+header.BackgroundTransparency = 0.03
 header.BorderSizePixel = 0
-header.ZIndex = 5
-header.Parent = card
-
-gradient(header, "HeaderGradient", {
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(22, 8, 24)),
-    ColorSequenceKeypoint.new(0.50, P.black),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 15, 28)),
+header.ZIndex = 6
+header.Parent = window
+addGradient(header, "HeaderGradient", {
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 8, 31)),
+    ColorSequenceKeypoint.new(0.5, C.black),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 16, 32)),
 }, 0)
 
-local title = Instance.new("TextLabel")
-title.Name = "Title"
-title.Position = UDim2.fromOffset(18, 7)
-title.Size = UDim2.new(0.55, 0, 0, 24)
-title.BackgroundTransparency = 1
-title.Font = Enum.Font.GothamBlack
-title.Text = "DKHUB"
-title.TextColor3 = P.white
-title.TextSize = 21
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.ZIndex = 8
-title.Parent = header
-local titleGradient = gradient(title, "TitleGradient", {
-    ColorSequenceKeypoint.new(0, P.white),
-    ColorSequenceKeypoint.new(0.45, P.pink),
-    ColorSequenceKeypoint.new(1, P.white),
+local title = text(header, "Title", "DKHUB", UDim2.fromOffset(22, 7), UDim2.new(0.55, 0, 0, 29), Enum.Font.GothamBlack, 26, C.white)
+local titleGradient = addGradient(title, "TitleShine", {
+    ColorSequenceKeypoint.new(0, C.white),
+    ColorSequenceKeypoint.new(0.45, C.pink),
+    ColorSequenceKeypoint.new(0.70, C.purple),
+    ColorSequenceKeypoint.new(1, C.white),
 }, 0)
 task.spawn(function()
     while gui.Parent do
         titleGradient.Offset = Vector2.new(-1, 0)
-        animate(titleGradient, 2.2, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
-        task.wait(0.6)
+        tw(titleGradient, 2.2, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+        task.wait(0.55)
     end
 end)
+text(header, "Subtitle", "MOBILE TEST INTERFACE", UDim2.fromOffset(24, 37), UDim2.new(0.65, 0, 0, 14), Enum.Font.GothamMedium, 10, C.muted)
 
-local subtitle = Instance.new("TextLabel")
-subtitle.Name = "Subtitle"
-subtitle.Position = UDim2.fromOffset(19, 32)
-subtitle.Size = UDim2.new(0.65, 0, 0, 13)
-subtitle.BackgroundTransparency = 1
-subtitle.Font = Enum.Font.GothamMedium
-subtitle.Text = "PREMIUM VISUAL INTERFACE"
-subtitle.TextColor3 = P.muted
-subtitle.TextSize = 9
-subtitle.TextXAlignment = Enum.TextXAlignment.Left
-subtitle.ZIndex = 8
-subtitle.Parent = header
-
-local function headerButton(name, text, xOffset)
+local function headerButton(name, value, x)
     local b = Instance.new("TextButton")
     b.Name = name
     b.AnchorPoint = Vector2.new(1, 0.5)
-    b.Position = UDim2.new(1, xOffset, 0.5, 0)
-    b.Size = UDim2.fromOffset(34, 33)
-    b.BackgroundColor3 = P.panel2
+    b.Position = UDim2.new(1, x, 0.5, 0)
+    b.Size = UDim2.fromOffset(40, 38)
+    b.BackgroundColor3 = C.panel2
     b.AutoButtonColor = false
     b.BorderSizePixel = 0
     b.Font = Enum.Font.GothamBold
-    b.Text = text
-    b.TextColor3 = P.white
-    b.TextSize = 16
+    b.Text = value
+    b.TextColor3 = C.white
+    b.TextSize = 19
     b.ZIndex = 9
     b.Parent = header
-    round(b, 9)
-    local s = stroke(b, P.red, 1, 0.55)
-    b.MouseEnter:Connect(function()
-        animate(b, 0.16, {BackgroundColor3 = P.redBright})
-        animate(s, 0.16, {Transparency = 0})
-    end)
-    b.MouseLeave:Connect(function()
-        animate(b, 0.16, {BackgroundColor3 = P.panel2})
-        animate(s, 0.16, {Transparency = 0.55})
-    end)
+    corner(b, 10)
+    local s = addStroke(b, C.red, 1, 0.45)
+    b.MouseEnter:Connect(function() tw(b, 0.15, {BackgroundColor3 = C.redBright}); tw(s, 0.15, {Transparency = 0}) end)
+    b.MouseLeave:Connect(function() tw(b, 0.15, {BackgroundColor3 = C.panel2}); tw(s, 0.15, {Transparency = 0.45}) end)
     return b
 end
 
-local closeButton = headerButton("Close", "×", -10)
-local minimizeButton = headerButton("Minimize", "□", -51)
+local closeButton = headerButton("Close", "×", -12)
+local minimizeButton = headerButton("Minimize", "□", -61)
+local headerLine = Instance.new("Frame")
+headerLine.Name = "HeaderLine"
+headerLine.Position = UDim2.new(0, 20, 1, -1)
+headerLine.Size = UDim2.new(1, -40, 0, 1)
+headerLine.BackgroundColor3 = C.red
+headerLine.BorderSizePixel = 0
+headerLine.ZIndex = 10
+headerLine.Parent = header
+addGradient(headerLine, "LineShine", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.5, C.white),
+    ColorSequenceKeypoint.new(1, C.purple),
+}, 0)
 
-local line = Instance.new("Frame")
-line.Name = "HeaderLine"
-line.Position = UDim2.new(0, 16, 1, -1)
-line.Size = UDim2.new(1, -32, 0, 1)
-line.BackgroundColor3 = P.red
-line.BorderSizePixel = 0
-line.ZIndex = 9
-line.Parent = header
-local lineGradient = gradient(line, "LineGradient", {
-    ColorSequenceKeypoint.new(0, P.red),
-    ColorSequenceKeypoint.new(0.5, P.white),
-    ColorSequenceKeypoint.new(1, P.purple),
+-- Blank content with TEST showcase.
+local content = Instance.new("Frame")
+content.Name = "TestContent"
+content.Position = UDim2.fromOffset(0, 62)
+content.Size = UDim2.new(1, 0, 1, -62)
+content.BackgroundTransparency = 1
+content.BorderSizePixel = 0
+content.ZIndex = 5
+content.Parent = window
+
+local test = text(content, "TestText", "TEST", UDim2.fromScale(0.08, 0.16), UDim2.fromScale(0.84, 0.17), Enum.Font.GothamBlack, 28, C.white)
+test.TextXAlignment = Enum.TextXAlignment.Center
+local testGradient = addGradient(test, "TestGradient", {
+    ColorSequenceKeypoint.new(0, C.white),
+    ColorSequenceKeypoint.new(0.35, C.pink),
+    ColorSequenceKeypoint.new(0.65, C.purple),
+    ColorSequenceKeypoint.new(1, C.white),
 }, 0)
 task.spawn(function()
     while gui.Parent do
-        lineGradient.Offset = Vector2.new(-1, 0)
-        animate(lineGradient, 1.5, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
-        task.wait(0.5)
+        if effects.gradient then
+            testGradient.Offset = Vector2.new(-1, 0)
+            tw(testGradient, 1.9, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+            task.wait(0.5)
+        else task.wait(0.4) end
     end
 end)
 
--- Empty showcase area.
-local showcase = Instance.new("Frame")
-showcase.Name = "EmptyShowcase"
-showcase.Position = UDim2.fromOffset(0, 54)
-showcase.Size = UDim2.new(1, 0, 1, -54)
-showcase.BackgroundTransparency = 1
-showcase.BorderSizePixel = 0
-showcase.ZIndex = 4
-showcase.Parent = card
-
-local centerOrb = Instance.new("Frame")
-centerOrb.Name = "CenterOrb"
-centerOrb.AnchorPoint = Vector2.new(0.5, 0.5)
-centerOrb.Position = UDim2.fromScale(0.5, 0.49)
-centerOrb.Size = UDim2.fromOffset(7, 7)
-centerOrb.BackgroundColor3 = P.white
-centerOrb.BorderSizePixel = 0
-centerOrb.ZIndex = 5
-centerOrb.Parent = showcase
-corner(centerOrb, 10)
-local orbStroke = stroke(centerOrb, P.pink, 2, 0.1)
+local pulseOrb = Instance.new("Frame")
+pulseOrb.Name = "PulseOrb"
+pulseOrb.AnchorPoint = Vector2.new(0.5, 0.5)
+pulseOrb.Position = UDim2.fromScale(0.5, 0.49)
+pulseOrb.Size = UDim2.fromOffset(10, 10)
+pulseOrb.BackgroundColor3 = C.white
+pulseOrb.BorderSizePixel = 0
+pulseOrb.ZIndex = 7
+pulseOrb.Parent = content
+corner(pulseOrb, 10)
+local pulseStroke = addStroke(pulseOrb, C.pink, 2, 0)
 
 task.spawn(function()
     while gui.Parent do
-        animate(centerOrb, 1.5, {Size = UDim2.fromOffset(13, 13), BackgroundTransparency = 0.25}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-        animate(centerOrb, 1.5, {Size = UDim2.fromOffset(7, 7), BackgroundTransparency = 0}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+        if effects.pulse then
+            tw(pulseOrb, 1.3, {Size = UDim2.fromOffset(22, 22), BackgroundTransparency = 0.25}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+            tw(pulseOrb, 1.3, {Size = UDim2.fromOffset(10, 10), BackgroundTransparency = 0}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
+        else task.wait(0.4) end
     end
 end)
 
-local accent = Instance.new("Frame")
-accent.Name = "BottomAccent"
-accent.AnchorPoint = Vector2.new(0.5, 1)
-accent.Position = UDim2.fromScale(0.5, 0.91)
-accent.Size = UDim2.fromScale(0.20, 0.008)
-accent.BackgroundColor3 = P.red
-accent.BorderSizePixel = 0
-accent.ZIndex = 5
-accent.Parent = showcase
-corner(accent, 10)
-gradient(accent, "AccentGradient", {
-    ColorSequenceKeypoint.new(0, P.red),
-    ColorSequenceKeypoint.new(0.5, P.white),
-    ColorSequenceKeypoint.new(1, P.purple),
+local underline = Instance.new("Frame")
+underline.Name = "TestUnderline"
+underline.AnchorPoint = Vector2.new(0.5, 0)
+underline.Position = UDim2.fromScale(0.5, 0.36)
+underline.Size = UDim2.fromScale(0.20, 0.008)
+underline.BackgroundColor3 = C.red
+underline.BorderSizePixel = 0
+underline.ZIndex = 7
+underline.Parent = content
+corner(underline, 10)
+addGradient(underline, "UnderlineGradient", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.5, C.white),
+    ColorSequenceKeypoint.new(1, C.purple),
 }, 0)
 
+local switchLabel = text(content, "SwitchTitle", "VISUAL TEST SWITCHES", UDim2.fromScale(0.08, 0.55), UDim2.fromScale(0.84, 0.07), Enum.Font.GothamBold, 11, C.redBright)
+switchLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local function makeSwitch(name, labelText, y, default, effectName)
+    local row = Instance.new("Frame")
+    row.Name = name .. "Row"
+    row.Position = UDim2.fromScale(0.08, y)
+    row.Size = UDim2.fromScale(0.84, 0.095)
+    row.BackgroundColor3 = C.panel2
+    row.BackgroundTransparency = 0.16
+    row.BorderSizePixel = 0
+    row.ZIndex = 7
+    row.Parent = content
+    corner(row, 9)
+    text(row, "Label", labelText, UDim2.fromScale(0.05, 0.18), UDim2.fromScale(0.66, 0.64), Enum.Font.GothamSemibold, 12, C.text)
+    local button = Instance.new("TextButton")
+    button.Name = "Switch"
+    button.Position = UDim2.fromScale(0.79, 0.23)
+    button.Size = UDim2.fromScale(0.15, 0.54)
+    button.BackgroundColor3 = default and C.red or C.black
+    button.AutoButtonColor = false
+    button.BorderSizePixel = 0
+    button.Text = ""
+    button.ZIndex = 9
+    button.Parent = row
+    corner(button, 20)
+    local knob = Instance.new("Frame")
+    knob.Name = "Knob"
+    knob.Size = UDim2.fromScale(0.38, 0.72)
+    knob.Position = default and UDim2.fromScale(0.57, 0.14) or UDim2.fromScale(0.05, 0.14)
+    knob.BackgroundColor3 = C.white
+    knob.BorderSizePixel = 0
+    knob.ZIndex = 10
+    knob.Parent = button
+    corner(knob, 20)
+    local enabled = default
+    local function render(value)
+        enabled = value
+        tw(button, 0.20, {BackgroundColor3 = enabled and C.red or C.black})
+        tw(knob, 0.20, {Position = enabled and UDim2.fromScale(0.57, 0.14) or UDim2.fromScale(0.05, 0.14)})
+        effects[effectName] = enabled
+    end
+    button.MouseButton1Click:Connect(function() render(not enabled) end)
+    return render
+end
+
+makeSwitch("Gradient", "Gradient Color", 0.64, true, "gradient")
+makeSwitch("Border", "Border Shine", 0.745, true, "border")
+makeSwitch("Particles", "Light Particles", 0.85, true, "particles")
+
+-- Minimize icon.
 local icon = Instance.new("TextButton")
 icon.Name = "DKHUB_Icon"
 icon.AnchorPoint = Vector2.new(0.5, 0.5)
-icon.Position = UDim2.fromScale(0.88, 0.82)
-icon.Size = UDim2.fromOffset(62, 62)
-icon.BackgroundColor3 = P.black
+icon.Position = UDim2.fromScale(0.87, 0.84)
+icon.Size = UDim2.fromOffset(66, 66)
+icon.BackgroundColor3 = C.black
 icon.AutoButtonColor = false
 icon.BorderSizePixel = 0
 icon.Font = Enum.Font.GothamBlack
 icon.Text = "DK"
-icon.TextColor3 = P.white
-icon.TextSize = 18
+icon.TextColor3 = C.white
+icon.TextSize = 19
 icon.Visible = false
-icon.ZIndex = 20
+icon.ZIndex = 30
 icon.Parent = gui
-corner(icon, 31)
-local iconStroke = stroke(icon, P.pink, 2, 0)
-gradient(iconStroke, "IconGradient", {
-    ColorSequenceKeypoint.new(0, P.red),
-    ColorSequenceKeypoint.new(0.5, P.white),
-    ColorSequenceKeypoint.new(1, P.purple),
+corner(icon, 33)
+local iconStroke = addStroke(icon, C.pink, 2, 0)
+addGradient(iconStroke, "IconShine", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.5, C.white),
+    ColorSequenceKeypoint.new(1, C.purple),
 }, 0)
 
 local minimized = false
 local closed = false
 minimizeButton.MouseButton1Click:Connect(function()
     minimized = true
-    animate(card, 0.38, {Position = UDim2.fromScale(0.5, 1.26)}, Enum.EasingStyle.Back)
-    animate(shadow, 0.38, {Position = UDim2.fromScale(0.5, 1.28)}, Enum.EasingStyle.Back)
-    animate(aura, 0.38, {Position = UDim2.fromScale(0.5, 1.24)}, Enum.EasingStyle.Back)
-    task.delay(0.22, function()
+    tw(window, 0.40, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
+    tw(shadow, 0.40, {Position = UDim2.fromScale(0.5, 1.32)}, Enum.EasingStyle.Back)
+    tw(aura, 0.40, {Position = UDim2.fromScale(0.5, 1.28)}, Enum.EasingStyle.Back)
+    task.delay(0.24, function()
         if minimized and not closed then
             icon.Visible = true
             icon.Size = UDim2.fromOffset(8, 8)
-            animate(icon, 0.34, {Size = UDim2.fromOffset(62, 62)}, Enum.EasingStyle.Back)
+            tw(icon, 0.35, {Size = UDim2.fromOffset(66, 66)}, Enum.EasingStyle.Back)
         end
     end)
 end)
-
-icon.MouseEnter:Connect(function() animate(icon, 0.16, {BackgroundColor3 = Color3.fromRGB(27, 12, 35)}) end)
-icon.MouseLeave:Connect(function() animate(icon, 0.16, {BackgroundColor3 = P.black}) end)
 icon.MouseButton1Click:Connect(function()
     minimized = false
     icon.Visible = false
-    animate(card, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
-    animate(shadow, 0.42, {Position = UDim2.fromScale(0.5, 0.51)}, Enum.EasingStyle.Back)
-    animate(aura, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
+    tw(window, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
+    tw(shadow, 0.42, {Position = UDim2.fromScale(0.5, 0.505)}, Enum.EasingStyle.Back)
+    tw(aura, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
 end)
-
 closeButton.MouseButton1Click:Connect(function()
     closed = true
-    animate(card, 0.30, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
-    animate(shadow, 0.30, {Position = UDim2.fromScale(0.5, 1.37)}, Enum.EasingStyle.Back)
+    tw(window, 0.30, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
+    tw(shadow, 0.30, {Position = UDim2.fromScale(0.5, 1.37)}, Enum.EasingStyle.Back)
     task.delay(0.34, function() if closed then gui:Destroy() end end)
 end)
 
--- Drag the premium window by its header.
+-- Drag support for mouse and touch.
 local dragging = false
 local dragStart
 local startPosition
@@ -376,17 +439,15 @@ header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
-        startPosition = card.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
-        end)
+        startPosition = window.Position
+        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
     end
 end)
 UserInputService.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        card.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
-        shadow.Position = UDim2.new(card.Position.X.Scale, card.Position.X.Offset, card.Position.Y.Scale, card.Position.Y.Offset + 5)
-        aura.Position = UDim2.new(card.Position.X.Scale, card.Position.X.Offset, card.Position.Y.Scale, card.Position.Y.Offset)
+        local d = input.Position - dragStart
+        window.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + d.X, startPosition.Y.Scale, startPosition.Y.Offset + d.Y)
+        shadow.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset + 5)
+        aura.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset)
     end
 end)
