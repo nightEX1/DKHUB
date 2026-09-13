@@ -362,6 +362,14 @@ local function panel(parent, name, position, size)
     p.Parent = parent
     round(p, 8)
     local s = stroke(p, C.blue, 1, 0.55)
+    p.MouseEnter:Connect(function()
+        tween(p, 0.16, {BackgroundColor3 = Color3.fromRGB(18, 24, 49)})
+        tween(s, 0.16, {Transparency = 0.18})
+    end)
+    p.MouseLeave:Connect(function()
+        tween(p, 0.16, {BackgroundColor3 = C.card})
+        tween(s, 0.16, {Transparency = 0.55})
+    end)
     return p, s
 end
 
@@ -410,6 +418,17 @@ makeGradient(hero, "HeroGradient", {
     ColorSequenceKeypoint.new(0.55, C.card),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 20, 42)),
 }, 0)
+local statusChip = Instance.new("Frame")
+statusChip.Name = "StatusChip"
+statusChip.Position = UDim2.fromScale(0.70, 0.14)
+statusChip.Size = UDim2.fromScale(0.24, 0.22)
+statusChip.BackgroundColor3 = Color3.fromRGB(12, 38, 52)
+statusChip.BorderSizePixel = 0
+statusChip.ZIndex = 12
+statusChip.Parent = hero
+round(statusChip, 8)
+stroke(statusChip, C.cyan, 1, 0.25)
+makeText(statusChip, "Status", "● READY", UDim2.fromScale(0.08, 0.02), UDim2.fromScale(0.84, 0.90), FONT.mono, 8, C.cyan, Enum.TextXAlignment.Center)
 
 testToggle(home, "LaunchTest", "LAUNCH TEST", UDim2.fromScale(0.07, 0.59))
 testToggle(home, "PerformanceTest", "PERFORMANCE TEST", UDim2.fromScale(0.07, 0.75))
@@ -536,7 +555,13 @@ UserInputService.InputChanged:Connect(function(input)
     if iconDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local d = input.Position - iconStart
         if math.abs(d.X) > 4 or math.abs(d.Y) > 4 then iconMoved = true end
-        icon.Position = UDim2.new(iconOrigin.X.Scale, iconOrigin.X.Offset + d.X, iconOrigin.Y.Scale, iconOrigin.Y.Offset + d.Y)
+        local camera = workspace.CurrentCamera
+        if camera then
+            local viewport = camera.ViewportSize
+            local x = math.clamp(iconOrigin.X.Scale * viewport.X + iconOrigin.X.Offset + d.X, 34, viewport.X - 34)
+            local y = math.clamp(iconOrigin.Y.Scale * viewport.Y + iconOrigin.Y.Offset + d.Y, 34, viewport.Y - 34)
+            icon.Position = UDim2.fromOffset(x, y)
+        end
     end
 end)
 
