@@ -133,6 +133,27 @@ local borderGradient = addGradient(frameStroke, "WhiteShine", {
     ColorSequenceKeypoint.new(1, C.purple),
 }, 0)
 
+-- Top-most border mask: keeps dark child backgrounds from covering the red edge.
+local borderMask = Instance.new("Frame")
+borderMask.Name = "BorderMask"
+borderMask.AnchorPoint = Vector2.new(0.5, 0.5)
+borderMask.Position = window.Position
+borderMask.Size = window.Size
+borderMask.BackgroundTransparency = 1
+borderMask.BorderSizePixel = 0
+borderMask.Active = false
+borderMask.ZIndex = 50
+borderMask.Parent = gui
+corner(borderMask, 20)
+local maskStroke = addStroke(borderMask, C.red, 3, 0)
+local maskGradient = addGradient(maskStroke, "MaskShine", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.45, C.pink),
+    ColorSequenceKeypoint.new(0.50, C.white),
+    ColorSequenceKeypoint.new(0.58, C.purple),
+    ColorSequenceKeypoint.new(1, C.red),
+}, 0)
+
 local effects = {
     gradient = true,
     border = true,
@@ -404,11 +425,16 @@ addGradient(iconStroke, "IconShine", {
 
 local minimized = false
 local closed = false
+local iconDragging = false
+local iconMoved = false
+local iconDragStart
+local iconStartPosition
 minimizeButton.MouseButton1Click:Connect(function()
     minimized = true
     tw(window, 0.40, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
     tw(shadow, 0.40, {Position = UDim2.fromScale(0.5, 1.32)}, Enum.EasingStyle.Back)
     tw(aura, 0.40, {Position = UDim2.fromScale(0.5, 1.28)}, Enum.EasingStyle.Back)
+    tw(borderMask, 0.40, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
     task.delay(0.24, function()
         if minimized and not closed then
             icon.Visible = true
@@ -418,17 +444,48 @@ minimizeButton.MouseButton1Click:Connect(function()
     end)
 end)
 icon.MouseButton1Click:Connect(function()
+    if iconMoved then
+        iconMoved = false
+        return
+    end
     minimized = false
     icon.Visible = false
     tw(window, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
     tw(shadow, 0.42, {Position = UDim2.fromScale(0.5, 0.505)}, Enum.EasingStyle.Back)
     tw(aura, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
+    tw(borderMask, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
 end)
 closeButton.MouseButton1Click:Connect(function()
     closed = true
     tw(window, 0.30, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
     tw(shadow, 0.30, {Position = UDim2.fromScale(0.5, 1.37)}, Enum.EasingStyle.Back)
+    tw(borderMask, 0.30, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
     task.delay(0.34, function() if closed then gui:Destroy() end end)
+end)
+
+-- The minimized icon can be repositioned on touch or mouse.
+icon.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        iconDragging = true
+        iconMoved = false
+        iconDragStart = input.Position
+        iconStartPosition = icon.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                iconDragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if iconDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - iconDragStart
+        if math.abs(delta.X) > 4 or math.abs(delta.Y) > 4 then
+            iconMoved = true
+        end
+        icon.Position = UDim2.new(iconStartPosition.X.Scale, iconStartPosition.X.Offset + delta.X, iconStartPosition.Y.Scale, iconStartPosition.Y.Offset + delta.Y)
+    end
 end)
 
 -- Drag support for mouse and touch.
@@ -449,5 +506,6 @@ UserInputService.InputChanged:Connect(function(input)
         window.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + d.X, startPosition.Y.Scale, startPosition.Y.Offset + d.Y)
         shadow.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset + 5)
         aura.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset)
+        borderMask.Position = window.Position
     end
 end)
