@@ -31,6 +31,15 @@ local C = {
     off = Color3.fromRGB(25, 35, 63),
 }
 
+-- English typography system: consistent hierarchy across the entire interface.
+local FONT = {
+    display = Enum.Font.GothamBlack,     -- logo and hero titles
+    heading = Enum.Font.GothamBold,      -- page and section headings
+    control = Enum.Font.GothamSemibold,  -- navigation, buttons and switches
+    body = Enum.Font.Gotham,             -- descriptions and supporting text
+    mono = Enum.Font.Code,               -- technical labels and status text
+}
+
 local function round(o, r)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, r)
@@ -59,7 +68,7 @@ local function makeText(parent, name, value, position, size, font, textSize, col
     l.Position = position
     l.Size = size
     l.BackgroundTransparency = 1
-    l.Font = font or Enum.Font.Gotham
+    l.Font = font or FONT.body
     l.TextSize = textSize or 14
     l.TextColor3 = color or C.text
     l.TextXAlignment = align or Enum.TextXAlignment.Left
@@ -194,7 +203,7 @@ makeGradient(topLine, "TopLineGradient", {
     ColorSequenceKeypoint.new(1, C.red),
 }, 0)
 
-local logo = makeText(header, "Logo", "DKHUB", UDim2.fromOffset(20, 4), UDim2.new(0.55, 0, 0, 29), Enum.Font.GothamBlack, 23, C.white)
+local logo = makeText(header, "Logo", "DKHUB", UDim2.fromOffset(20, 4), UDim2.new(0.55, 0, 0, 29), FONT.display, 23, C.white)
 local logoGradient = makeGradient(logo, "LogoGradient", {
     ColorSequenceKeypoint.new(0, C.magenta),
     ColorSequenceKeypoint.new(0.48, C.white),
@@ -207,7 +216,7 @@ task.spawn(function()
         task.wait(0.45)
     end
 end)
-makeText(header, "HeaderTag", "CYBERPUNK // TEST BUILD", UDim2.fromOffset(22, 31), UDim2.new(0.60, 0, 0, 12), Enum.Font.GothamMedium, 8, C.muted)
+makeText(header, "HeaderTag", "CYBERPUNK // TEST BUILD", UDim2.fromOffset(22, 31), UDim2.new(0.60, 0, 0, 12), FONT.body, 8, C.muted)
 
 local function headerButton(name, symbol, x)
     local b = Instance.new("TextButton")
@@ -218,7 +227,7 @@ local function headerButton(name, symbol, x)
     b.BackgroundColor3 = C.panel
     b.AutoButtonColor = false
     b.BorderSizePixel = 0
-    b.Font = Enum.Font.GothamBold
+    b.Font = FONT.heading
     b.Text = symbol
     b.TextColor3 = C.white
     b.TextSize = 16
@@ -262,7 +271,7 @@ main.BorderSizePixel = 0
 main.ZIndex = 4
 main.Parent = window
 
-makeText(rail, "RailTitle", "NAV", UDim2.fromScale(0.22, 0.06), UDim2.fromScale(0.56, 0.06), Enum.Font.GothamBold, 9, C.blue, Enum.TextXAlignment.Center)
+makeText(rail, "RailTitle", "NAV", UDim2.fromScale(0.22, 0.06), UDim2.fromScale(0.56, 0.06), FONT.heading, 9, C.blue, Enum.TextXAlignment.Center)
 local tabs = {}
 local pages = {}
 local function page(name)
@@ -292,8 +301,8 @@ local function navButton(name, symbol, caption, y)
     b.ZIndex = 13
     b.Parent = rail
     round(b, 8)
-    local ico = makeText(b, "Icon", symbol, UDim2.fromScale(0.08, 0.08), UDim2.fromScale(0.84, 0.45), Enum.Font.GothamBold, 22, C.muted, Enum.TextXAlignment.Center)
-    local cap = makeText(b, "Caption", caption, UDim2.fromScale(0.06, 0.51), UDim2.fromScale(0.88, 0.31), Enum.Font.GothamBold, 8, C.muted, Enum.TextXAlignment.Center)
+    local ico = makeText(b, "Icon", symbol, UDim2.fromScale(0.08, 0.08), UDim2.fromScale(0.84, 0.45), FONT.heading, 22, C.muted, Enum.TextXAlignment.Center)
+    local cap = makeText(b, "Caption", caption, UDim2.fromScale(0.06, 0.51), UDim2.fromScale(0.88, 0.31), FONT.heading, 8, C.muted, Enum.TextXAlignment.Center)
     local activeBar = Instance.new("Frame")
     activeBar.Name = "ActiveBar"
     activeBar.AnchorPoint = Vector2.new(0.5, 1)
@@ -311,7 +320,7 @@ end
 local homeNav = navButton("Home", "⌂", "HOME", 0.16)
 local chainNav = navButton("Chain", "⛓", "CHAIN", 0.32)
 local settingsNav = navButton("Settings", "⚙", "SETTINGS", 0.48)
-makeText(rail, "RailFooter", "v2.0", UDim2.fromScale(0.20, 0.91), UDim2.fromScale(0.60, 0.05), Enum.Font.GothamMedium, 8, C.muted, Enum.TextXAlignment.Center)
+makeText(rail, "RailFooter", "v2.0", UDim2.fromScale(0.20, 0.91), UDim2.fromScale(0.60, 0.05), FONT.body, 8, C.muted, Enum.TextXAlignment.Center)
 
 local function activate(name)
     for n, data in pairs(tabs) do
@@ -325,7 +334,7 @@ local function activate(name)
 end
 
 local function pageTitle(parent, titleValue, subtitleValue)
-    local h = makeText(parent, "PageTitle", titleValue, UDim2.fromScale(0.07, 0.07), UDim2.fromScale(0.86, 0.11), Enum.Font.GothamBlack, 25, C.white)
+    local h = makeText(parent, "PageTitle", titleValue, UDim2.fromScale(0.07, 0.07), UDim2.fromScale(0.86, 0.11), FONT.display, 25, C.white)
     local hGradient = makeGradient(h, "PageTitleGradient", {
         ColorSequenceKeypoint.new(0, C.white),
         ColorSequenceKeypoint.new(0.55, C.cyan),
@@ -338,7 +347,7 @@ local function pageTitle(parent, titleValue, subtitleValue)
             task.wait(0.6)
         end
     end)
-    makeText(parent, "PageSubtitle", subtitleValue, UDim2.fromScale(0.08, 0.18), UDim2.fromScale(0.84, 0.07), Enum.Font.Gotham, 10, C.muted)
+    makeText(parent, "PageSubtitle", subtitleValue, UDim2.fromScale(0.08, 0.18), UDim2.fromScale(0.84, 0.07), FONT.body, 10, C.muted)
 end
 
 local function panel(parent, name, position, size)
@@ -358,8 +367,8 @@ end
 
 local function testToggle(parent, name, caption, pos)
     local row = panel(parent, name, pos, UDim2.fromScale(0.88, 0.14))
-    makeText(row, "Caption", caption, UDim2.fromScale(0.07, 0.18), UDim2.fromScale(0.62, 0.30), Enum.Font.GothamBold, 11, C.text)
-    makeText(row, "Hint", "TEST / VISUAL ONLY", UDim2.fromScale(0.07, 0.54), UDim2.fromScale(0.62, 0.20), Enum.Font.GothamMedium, 8, C.muted)
+    makeText(row, "Caption", caption, UDim2.fromScale(0.07, 0.18), UDim2.fromScale(0.62, 0.30), FONT.heading, 11, C.text)
+    makeText(row, "Hint", "TEST / VISUAL ONLY", UDim2.fromScale(0.07, 0.54), UDim2.fromScale(0.62, 0.20), FONT.body, 8, C.muted)
     local button = Instance.new("TextButton")
     button.Name = "Switch"
     button.Position = UDim2.fromScale(0.78, 0.28)
@@ -393,9 +402,9 @@ end
 pageTitle(home, "TEST", "CYBERPUNK CONTROL CENTER  //  VISUAL PREVIEW")
 local hero, heroStroke = panel(home, "Hero", UDim2.fromScale(0.07, 0.30), UDim2.fromScale(0.88, 0.23))
 heroStroke.Color = C.magenta
-makeText(hero, "HeroSmall", "DKHUB // SYSTEM ONLINE", UDim2.fromScale(0.06, 0.14), UDim2.fromScale(0.80, 0.18), Enum.Font.GothamBold, 9, C.pink)
-makeText(hero, "HeroTitle", "YOUR SPACE. YOUR CONTROL.", UDim2.fromScale(0.06, 0.34), UDim2.fromScale(0.88, 0.30), Enum.Font.GothamBlack, 18, C.white)
-makeText(hero, "HeroSub", "A clean visual framework for future modules.", UDim2.fromScale(0.06, 0.70), UDim2.fromScale(0.88, 0.16), Enum.Font.Gotham, 9, C.muted)
+makeText(hero, "HeroSmall", "DKHUB // SYSTEM ONLINE", UDim2.fromScale(0.06, 0.14), UDim2.fromScale(0.80, 0.18), FONT.heading, 9, C.pink)
+makeText(hero, "HeroTitle", "YOUR SPACE. YOUR CONTROL.", UDim2.fromScale(0.06, 0.34), UDim2.fromScale(0.88, 0.30), FONT.display, 18, C.white)
+makeText(hero, "HeroSub", "A clean visual framework for future modules.", UDim2.fromScale(0.06, 0.70), UDim2.fromScale(0.88, 0.16), FONT.body, 9, C.muted)
 makeGradient(hero, "HeroGradient", {
     ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 8, 32)),
     ColorSequenceKeypoint.new(0.55, C.card),
@@ -409,22 +418,22 @@ testToggle(home, "PerformanceTest", "PERFORMANCE TEST", UDim2.fromScale(0.07, 0.
 pageTitle(chain, "CHAIN", "EMPTY MODULE NETWORK  //  READY FOR DESIGN")
 local chainHero, chainStroke = panel(chain, "ChainHero", UDim2.fromScale(0.07, 0.30), UDim2.fromScale(0.88, 0.16))
 chainStroke.Color = C.purple
-makeText(chainHero, "Count", "00", UDim2.fromScale(0.06, 0.17), UDim2.fromScale(0.25, 0.62), Enum.Font.GothamBlack, 24, C.cyan)
-makeText(chainHero, "Label", "ACTIVE MODULES", UDim2.fromScale(0.33, 0.24), UDim2.fromScale(0.56, 0.22), Enum.Font.GothamBold, 10, C.text)
-makeText(chainHero, "Hint", "Everything is empty by design.", UDim2.fromScale(0.33, 0.53), UDim2.fromScale(0.56, 0.20), Enum.Font.Gotham, 9, C.muted)
+makeText(chainHero, "Count", "00", UDim2.fromScale(0.06, 0.17), UDim2.fromScale(0.25, 0.62), FONT.display, 24, C.cyan)
+makeText(chainHero, "Label", "ACTIVE MODULES", UDim2.fromScale(0.33, 0.24), UDim2.fromScale(0.56, 0.22), FONT.heading, 10, C.text)
+makeText(chainHero, "Hint", "Everything is empty by design.", UDim2.fromScale(0.33, 0.53), UDim2.fromScale(0.56, 0.20), FONT.body, 9, C.muted)
 for i = 1, 3 do
     local slot, slotStroke = panel(chain, "Module" .. i, UDim2.fromScale(0.07, 0.51 + (i - 1) * 0.15), UDim2.fromScale(0.88, 0.11))
     slotStroke.Color = i == 1 and C.red or (i == 2 and C.purple or C.blue)
-    makeText(slot, "Slot", "MODULE 0" .. i, UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.40, 0.30), Enum.Font.GothamBold, 10, C.text)
-    makeText(slot, "Empty", "EMPTY", UDim2.fromScale(0.70, 0.16), UDim2.fromScale(0.23, 0.30), Enum.Font.GothamBold, 9, C.muted, Enum.TextXAlignment.Right)
+    makeText(slot, "Slot", "MODULE 0" .. i, UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.40, 0.30), FONT.heading, 10, C.text)
+    makeText(slot, "Empty", "EMPTY", UDim2.fromScale(0.70, 0.16), UDim2.fromScale(0.23, 0.30), FONT.heading, 9, C.muted, Enum.TextXAlignment.Right)
 end
 
 -- SETTINGS PAGE.
 pageTitle(settings, "SETTINGS", "VISUAL PREFERENCES  //  TEST CONTROLS")
 local settingsHero, settingsStroke = panel(settings, "SettingsHero", UDim2.fromScale(0.07, 0.30), UDim2.fromScale(0.88, 0.16))
 settingsStroke.Color = C.blue
-makeText(settingsHero, "Title", "VISUAL ENGINE", UDim2.fromScale(0.06, 0.17), UDim2.fromScale(0.62, 0.30), Enum.Font.GothamBlack, 16, C.white)
-makeText(settingsHero, "Hint", "Changes below are UI demonstrations only.", UDim2.fromScale(0.06, 0.54), UDim2.fromScale(0.82, 0.20), Enum.Font.Gotham, 9, C.muted)
+makeText(settingsHero, "Title", "VISUAL ENGINE", UDim2.fromScale(0.06, 0.17), UDim2.fromScale(0.62, 0.30), FONT.display, 16, C.white)
+makeText(settingsHero, "Hint", "Changes below are UI demonstrations only.", UDim2.fromScale(0.06, 0.54), UDim2.fromScale(0.82, 0.20), FONT.body, 9, C.muted)
 testToggle(settings, "BorderTest", "BORDER SHINE", UDim2.fromScale(0.07, 0.51))
 testToggle(settings, "GlowTest", "NEON GLOW", UDim2.fromScale(0.07, 0.67))
 testToggle(settings, "ParticleTest", "LIGHT PARTICLES", UDim2.fromScale(0.07, 0.83))
@@ -443,7 +452,7 @@ icon.Size = UDim2.fromOffset(64, 64)
 icon.BackgroundColor3 = C.black
 icon.AutoButtonColor = false
 icon.BorderSizePixel = 0
-icon.Font = Enum.Font.GothamBlack
+icon.Font = FONT.display
 icon.Text = "DK"
 icon.TextColor3 = C.white
 icon.TextSize = 18
