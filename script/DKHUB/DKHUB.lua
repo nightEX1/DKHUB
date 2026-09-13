@@ -1,361 +1,281 @@
--- DKHUB | Steal an Egg UI
--- Safe UI shell for your own Roblox Studio experience.
--- Switch callbacks are local and ready to connect to your own game systems.
+-- DKHUB UI KIT
+-- Visual-only interface template. No game automation, no callbacks, no game controls.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local old = playerGui:FindFirstChild("DKHUB_StealAnEgg")
+local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local old = playerGui:FindFirstChild("DKHUB_UI_KIT")
 if old then old:Destroy() end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "DKHUB_StealAnEgg"
+gui.Name = "DKHUB_UI_KIT"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
-local C = {
-    bg = Color3.fromRGB(10, 10, 14),
-    panel = Color3.fromRGB(18, 18, 25),
-    panel2 = Color3.fromRGB(25, 25, 34),
-    red = Color3.fromRGB(228, 42, 62),
-    red2 = Color3.fromRGB(255, 76, 91),
+local COLOR = {
+    black = Color3.fromRGB(7, 7, 10),
+    panel = Color3.fromRGB(15, 15, 20),
+    panel2 = Color3.fromRGB(23, 23, 30),
+    red = Color3.fromRGB(221, 32, 49),
+    redBright = Color3.fromRGB(255, 71, 86),
     white = Color3.fromRGB(255, 255, 255),
-    text = Color3.fromRGB(220, 220, 230),
-    muted = Color3.fromRGB(145, 146, 160),
-    green = Color3.fromRGB(62, 210, 137),
+    gray = Color3.fromRGB(150, 151, 165),
 }
 
-local function round(obj, radius)
+local function addCorner(parent, radius)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, radius)
-    c.Parent = obj
+    c.Parent = parent
 end
 
-local function stroke(obj, color, thickness, transparency)
+local function addStroke(parent, color, thickness, transparency)
     local s = Instance.new("UIStroke")
     s.Color = color
-    s.Thickness = thickness or 1
+    s.Thickness = thickness
     s.Transparency = transparency or 0
-    s.Parent = obj
+    s.Parent = parent
     return s
 end
 
-local function tw(obj, time, props, style)
-    local t = TweenService:Create(obj, TweenInfo.new(time, style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props)
-    t:Play()
-    return t
+local function animate(instance, duration, properties, style)
+    local info = TweenInfo.new(duration, style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(instance, info, properties)
+    tween:Play()
+    return tween
 end
 
-local function label(parent, name, text, pos, size, font, textSize, color)
-    local l = Instance.new("TextLabel")
-    l.Name = name
-    l.Position = pos
-    l.Size = size
-    l.BackgroundTransparency = 1
-    l.Font = font or Enum.Font.Gotham
-    l.Text = text
-    l.TextSize = textSize or 14
-    l.TextColor3 = color or C.text
-    l.TextXAlignment = Enum.TextXAlignment.Left
-    l.ZIndex = 5
-    l.Parent = parent
-    return l
-end
-
+-- Soft shadow behind the card.
 local shadow = Instance.new("Frame")
 shadow.Name = "Shadow"
 shadow.AnchorPoint = Vector2.new(0.5, 0.5)
 shadow.Position = UDim2.fromScale(0.5, 0.505)
-shadow.Size = UDim2.fromScale(0.70, 0.57)
+shadow.Size = UDim2.fromScale(0.705, 0.575)
 shadow.BackgroundColor3 = Color3.new(0, 0, 0)
-shadow.BackgroundTransparency = 0.35
+shadow.BackgroundTransparency = 0.28
 shadow.BorderSizePixel = 0
 shadow.ZIndex = 1
 shadow.Parent = gui
-round(shadow, 16)
+addCorner(shadow, 17)
 
-local window = Instance.new("Frame")
-window.Name = "Window"
-window.AnchorPoint = Vector2.new(0.5, 0.5)
-window.Position = UDim2.fromScale(0.5, 0.5)
-window.Size = UDim2.fromScale(0.69, 0.55)
-window.BackgroundColor3 = C.panel
-window.BorderSizePixel = 0
-window.ClipsDescendants = true
-window.ZIndex = 2
-window.Parent = gui
-round(window, 15)
-local aspect = Instance.new("UIAspectRatioConstraint")
-aspect.AspectRatio = 16 / 9
-aspect.Parent = window
-local outline = stroke(window, C.red, 2, 0.05)
+-- Main card: inset 16:9 layout so the scene remains visible.
+local card = Instance.new("Frame")
+card.Name = "DKHUB"
+card.AnchorPoint = Vector2.new(0.5, 0.5)
+card.Position = UDim2.fromScale(0.5, 0.5)
+card.Size = UDim2.fromScale(0.69, 0.55)
+card.BackgroundColor3 = COLOR.panel
+card.BorderSizePixel = 0
+card.ClipsDescendants = true
+card.ZIndex = 2
+card.Parent = gui
+addCorner(card, 15)
 
--- Moving white highlight on the red border.
+local ratio = Instance.new("UIAspectRatioConstraint")
+ratio.Name = "SixteenByNine"
+ratio.AspectRatio = 16 / 9
+ratio.DominantAxis = Enum.DominantAxis.Width
+ratio.Parent = card
+
+-- Red frame with a white moving shine.
+local frameStroke = addStroke(card, COLOR.red, 2, 0.02)
 local shine = Instance.new("UIGradient")
+shine.Name = "WhiteShine"
 shine.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, C.red),
-    ColorSequenceKeypoint.new(0.44, C.red),
-    ColorSequenceKeypoint.new(0.50, C.white),
-    ColorSequenceKeypoint.new(0.56, C.red),
-    ColorSequenceKeypoint.new(1, C.red),
+    ColorSequenceKeypoint.new(0.00, COLOR.red),
+    ColorSequenceKeypoint.new(0.42, COLOR.red),
+    ColorSequenceKeypoint.new(0.50, COLOR.white),
+    ColorSequenceKeypoint.new(0.58, COLOR.red),
+    ColorSequenceKeypoint.new(1.00, COLOR.red),
 })
 shine.Offset = Vector2.new(-1, 0)
-shine.Parent = outline
+shine.Parent = frameStroke
+
 task.spawn(function()
     while gui.Parent do
         shine.Offset = Vector2.new(-1, 0)
-        tw(shine, 1.7, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
-        task.wait(0.7)
+        animate(shine, 1.65, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+        task.wait(0.65)
     end
 end)
 
+-- Header.
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 48)
-header.BackgroundColor3 = C.bg
+header.Size = UDim2.new(1, 0, 0, 52)
+header.BackgroundColor3 = COLOR.black
 header.BorderSizePixel = 0
 header.ZIndex = 4
-header.Parent = window
+header.Parent = card
 
-label(header, "Title", "DKHUB", UDim2.fromOffset(16, 5), UDim2.new(0.5, 0, 0, 22), Enum.Font.GothamBold, 20, C.white)
-label(header, "Subtitle", "STEAL AN EGG  •  CONTROL PANEL", UDim2.fromOffset(17, 28), UDim2.new(0.7, 0, 0, 14), Enum.Font.Gotham, 9, C.muted)
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Position = UDim2.fromOffset(18, 7)
+title.Size = UDim2.new(0.55, 0, 0, 23)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.Text = "DKHUB"
+title.TextColor3 = COLOR.white
+title.TextSize = 20
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.ZIndex = 6
+title.Parent = header
 
-local function topButton(name, text, x)
-    local b = Instance.new("TextButton")
-    b.Name = name
-    b.AnchorPoint = Vector2.new(1, 0.5)
-    b.Position = UDim2.new(1, x, 0.5, 0)
-    b.Size = UDim2.fromOffset(32, 31)
-    b.BackgroundColor3 = C.panel2
-    b.AutoButtonColor = false
-    b.BorderSizePixel = 0
-    b.Font = Enum.Font.GothamBold
-    b.Text = text
-    b.TextColor3 = C.white
-    b.TextSize = 16
-    b.ZIndex = 6
-    b.Parent = header
-    round(b, 8)
-    b.MouseEnter:Connect(function() tw(b, 0.12, {BackgroundColor3 = C.red}) end)
-    b.MouseLeave:Connect(function() tw(b, 0.12, {BackgroundColor3 = C.panel2}) end)
-    return b
-end
+local subtitle = Instance.new("TextLabel")
+subtitle.Name = "Subtitle"
+subtitle.Position = UDim2.fromOffset(19, 31)
+subtitle.Size = UDim2.new(0.65, 0, 0, 13)
+subtitle.BackgroundTransparency = 1
+subtitle.Font = Enum.Font.Gotham
+subtitle.Text = "UI KIT  /  VISUAL TEMPLATE"
+subtitle.TextColor3 = COLOR.gray
+subtitle.TextSize = 9
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.ZIndex = 6
+subtitle.Parent = header
 
-local close = topButton("Close", "×", -10)
-local minimize = topButton("Minimize", "□", -49)
-
-local side = Instance.new("Frame")
-side.Name = "Sidebar"
-side.Position = UDim2.fromOffset(0, 48)
-side.Size = UDim2.new(0.25, 0, 1, -48)
-side.BackgroundColor3 = C.bg
-side.BorderSizePixel = 0
-side.ZIndex = 4
-side.Parent = window
-
-local content = Instance.new("Frame")
-content.Name = "Content"
-content.Position = UDim2.new(0.25, 0, 0, 48)
-content.Size = UDim2.new(0.75, 0, 1, -48)
-content.BackgroundColor3 = C.panel
-content.BorderSizePixel = 0
-content.ZIndex = 3
-content.Parent = window
-
-local tabButtons = {}
-local pages = {}
-local function makeTab(name, text, y)
-    local b = Instance.new("TextButton")
-    b.Name = name .. "Tab"
-    b.Position = UDim2.fromScale(0.10, y)
-    b.Size = UDim2.fromScale(0.80, 0.105)
-    b.BackgroundColor3 = C.bg
-    b.AutoButtonColor = false
-    b.BorderSizePixel = 0
-    b.Font = Enum.Font.GothamSemibold
-    b.Text = text
-    b.TextColor3 = C.muted
-    b.TextSize = 12
-    b.TextXAlignment = Enum.TextXAlignment.Left
-    b.ZIndex = 6
-    b.Parent = side
-    round(b, 8)
-    local p = Instance.new("UIPadding")
-    p.PaddingLeft = UDim.new(0, 12)
-    p.Parent = b
-    tabButtons[name] = b
-    return b
-end
-
-label(side, "MenuTitle", "MENU", UDim2.fromScale(0.12, 0.08), UDim2.fromScale(0.76, 0.08), Enum.Font.GothamBold, 10, C.red2)
-local homeTab = makeTab("Home", "⌂   Home", 0.19)
-local eggTab = makeTab("Eggs", "◈   Eggs", 0.32)
-local accountTab = makeTab("Account", "●   Account", 0.45)
-label(side, "Version", "DKHUB v1.0", UDim2.fromScale(0.12, 0.90), UDim2.fromScale(0.76, 0.06), Enum.Font.Gotham, 9, C.muted)
-
-local function makePage(name)
-    local p = Instance.new("Frame")
-    p.Name = name .. "Page"
-    p.Size = UDim2.fromScale(1, 1)
-    p.BackgroundTransparency = 1
-    p.Visible = false
-    p.ZIndex = 4
-    p.Parent = content
-    pages[name] = p
-    return p
-end
-
-local function setTab(name)
-    for n, b in pairs(tabButtons) do
-        local active = n == name
-        tw(b, 0.16, {BackgroundColor3 = active and C.red or C.bg, TextColor3 = active and C.white or C.muted})
-    end
-    for n, p in pairs(pages) do p.Visible = n == name end
-end
-
-local function switch(parent, name, titleText, description, y, default, callback)
-    local row = Instance.new("Frame")
-    row.Name = name .. "Row"
-    row.Position = UDim2.fromScale(0.07, y)
-    row.Size = UDim2.fromScale(0.86, 0.14)
-    row.BackgroundColor3 = C.panel2
-    row.BorderSizePixel = 0
-    row.ZIndex = 5
-    row.Parent = parent
-    round(row, 9)
-    label(row, "Title", titleText, UDim2.fromScale(0.05, 0.13), UDim2.fromScale(0.68, 0.35), Enum.Font.GothamSemibold, 12, C.white)
-    label(row, "Description", description, UDim2.fromScale(0.05, 0.52), UDim2.fromScale(0.68, 0.25), Enum.Font.Gotham, 9, C.muted)
+local function headerButton(name, text, xOffset)
     local button = Instance.new("TextButton")
-    button.Name = "Switch"
-    button.Position = UDim2.fromScale(0.79, 0.27)
-    button.Size = UDim2.fromScale(0.15, 0.45)
-    button.BackgroundColor3 = default and C.red or C.bg
+    button.Name = name
+    button.AnchorPoint = Vector2.new(1, 0.5)
+    button.Position = UDim2.new(1, xOffset, 0.5, 0)
+    button.Size = UDim2.fromOffset(33, 32)
+    button.BackgroundColor3 = COLOR.panel2
     button.AutoButtonColor = false
     button.BorderSizePixel = 0
-    button.Text = ""
+    button.Font = Enum.Font.GothamBold
+    button.Text = text
+    button.TextColor3 = COLOR.white
+    button.TextSize = 16
     button.ZIndex = 7
-    button.Parent = row
-    round(button, 20)
-    local knob = Instance.new("Frame")
-    knob.Name = "Knob"
-    knob.Size = UDim2.fromScale(0.42, 0.72)
-    knob.Position = default and UDim2.fromScale(0.53, 0.14) or UDim2.fromScale(0.05, 0.14)
-    knob.BackgroundColor3 = C.white
-    knob.BorderSizePixel = 0
-    knob.ZIndex = 8
-    knob.Parent = button
-    round(knob, 20)
-    local enabled = default
-    local function render(value)
-        enabled = value
-        tw(button, 0.18, {BackgroundColor3 = enabled and C.red or C.bg})
-        tw(knob, 0.18, {Position = enabled and UDim2.fromScale(0.53, 0.14) or UDim2.fromScale(0.05, 0.14)})
-        if callback then callback(enabled) end
-    end
-    button.MouseButton1Click:Connect(function() render(not enabled) end)
-    return row, render
+    button.Parent = header
+    addCorner(button, 8)
+    button.MouseEnter:Connect(function()
+        animate(button, 0.13, {BackgroundColor3 = COLOR.redBright})
+    end)
+    button.MouseLeave:Connect(function()
+        animate(button, 0.13, {BackgroundColor3 = COLOR.panel2})
+    end)
+    return button
 end
 
-local home = makePage("Home")
-label(home, "Heading", "Welcome back, " .. player.Name, UDim2.fromScale(0.07, 0.08), UDim2.fromScale(0.86, 0.10), Enum.Font.GothamBold, 18, C.white)
-label(home, "Info", "จัดการฟังก์ชันของเกมจากแผงควบคุมของคุณ", UDim2.fromScale(0.07, 0.18), UDim2.fromScale(0.86, 0.06), Enum.Font.Gotham, 10, C.muted)
-local status = Instance.new("Frame")
-status.Position = UDim2.fromScale(0.07, 0.29)
-status.Size = UDim2.fromScale(0.86, 0.15)
-status.BackgroundColor3 = C.bg
-status.BorderSizePixel = 0
-status.ZIndex = 5
-status.Parent = home
-round(status, 9)
-label(status, "Status", "●  READY", UDim2.fromScale(0.06, 0.21), UDim2.fromScale(0.5, 0.30), Enum.Font.GothamBold, 12, C.green)
-label(status, "Place", "PlaceId: " .. tostring(game.PlaceId), UDim2.fromScale(0.06, 0.58), UDim2.fromScale(0.8, 0.20), Enum.Font.Gotham, 9, C.muted)
-local _, setNotify = switch(home, "Notifications", "Egg Notifications", "แจ้งเตือนเมื่อมีไข่เกิดในแมพ", 0.51, true)
-local _, setSound = switch(home, "Sound", "UI Sounds", "เปิดเสียงตอบสนองของปุ่ม", 0.67, true)
+local closeButton = headerButton("Close", "×", -10)
+local minimizeButton = headerButton("Minimize", "□", -50)
 
-local eggs = makePage("Eggs")
-label(eggs, "Heading", "Egg Controls", UDim2.fromScale(0.07, 0.08), UDim2.fromScale(0.86, 0.10), Enum.Font.GothamBold, 18, C.white)
-label(eggs, "Info", "สวิตช์เหล่านี้เป็นจุดเชื่อมสำหรับระบบในเกมของคุณเอง", UDim2.fromScale(0.07, 0.18), UDim2.fromScale(0.86, 0.06), Enum.Font.Gotham, 10, C.muted)
-local _, setMarkers = switch(eggs, "Markers", "Show Egg Markers", "แสดงตำแหน่งไข่ที่ระบบเกมอนุญาต", 0.30, false)
-local _, setAutoOpen = switch(eggs, "AutoOpen", "Auto Open Menu", "เปิดหน้าต่างไข่อัตโนมัติเมื่อกดจุดโต้ตอบ", 0.46, false)
-local _, setCompact = switch(eggs, "Compact", "Compact Notifications", "รวมการแจ้งเตือนให้อยู่ในบรรทัดเดียว", 0.62, true)
+local headerLine = Instance.new("Frame")
+headerLine.Name = "HeaderLine"
+headerLine.Position = UDim2.new(0, 15, 1, -1)
+headerLine.Size = UDim2.new(1, -30, 0, 1)
+headerLine.BackgroundColor3 = COLOR.red
+headerLine.BorderSizePixel = 0
+headerLine.ZIndex = 7
+headerLine.Parent = header
 
-local account = makePage("Account")
-label(account, "Heading", "Account", UDim2.fromScale(0.07, 0.08), UDim2.fromScale(0.86, 0.10), Enum.Font.GothamBold, 18, C.white)
-label(account, "User", "user : " .. player.Name, UDim2.fromScale(0.07, 0.27), UDim2.fromScale(0.86, 0.08), Enum.Font.Gotham, 13, C.text)
-label(account, "Map", "map : " .. tostring(workspace:GetAttribute("MapName") or game.PlaceId), UDim2.fromScale(0.07, 0.39), UDim2.fromScale(0.86, 0.08), Enum.Font.Gotham, 13, C.text)
-label(account, "Note", "UI นี้ออกแบบสำหรับประสบการณ์ที่คุณเป็นเจ้าของ", UDim2.fromScale(0.07, 0.62), UDim2.fromScale(0.86, 0.08), Enum.Font.Gotham, 10, C.muted)
+-- Empty content area: intentionally no game functions.
+local emptyContent = Instance.new("Frame")
+emptyContent.Name = "EmptyContent"
+emptyContent.Position = UDim2.fromOffset(0, 52)
+emptyContent.Size = UDim2.new(1, 0, 1, -52)
+emptyContent.BackgroundColor3 = COLOR.panel
+emptyContent.BorderSizePixel = 0
+emptyContent.ZIndex = 3
+emptyContent.Parent = card
 
-homeTab.MouseButton1Click:Connect(function() setTab("Home") end)
-eggTab.MouseButton1Click:Connect(function() setTab("Eggs") end)
-accountTab.MouseButton1Click:Connect(function() setTab("Account") end)
-setTab("Home")
+local centerGlow = Instance.new("Frame")
+centerGlow.Name = "CenterGlow"
+centerGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+centerGlow.Position = UDim2.fromScale(0.5, 0.48)
+centerGlow.Size = UDim2.fromScale(0.42, 0.05)
+centerGlow.BackgroundColor3 = COLOR.red
+centerGlow.BackgroundTransparency = 0.82
+centerGlow.BorderSizePixel = 0
+centerGlow.ZIndex = 4
+centerGlow.Parent = emptyContent
+addCorner(centerGlow, 20)
 
-local minimized = false
-local closed = false
+local bottomLine = Instance.new("Frame")
+bottomLine.Name = "BottomAccent"
+bottomLine.AnchorPoint = Vector2.new(0.5, 1)
+bottomLine.Position = UDim2.fromScale(0.5, 0.92)
+bottomLine.Size = UDim2.fromScale(0.22, 0.008)
+bottomLine.BackgroundColor3 = COLOR.red
+bottomLine.BorderSizePixel = 0
+bottomLine.ZIndex = 4
+bottomLine.Parent = emptyContent
+addCorner(bottomLine, 10)
+
+-- Small floating icon shown after minimize.
 local icon = Instance.new("TextButton")
 icon.Name = "DKHUB_Icon"
 icon.AnchorPoint = Vector2.new(0.5, 0.5)
 icon.Position = UDim2.fromScale(0.88, 0.82)
-icon.Size = UDim2.fromOffset(58, 58)
-icon.BackgroundColor3 = C.bg
+icon.Size = UDim2.fromOffset(60, 60)
+icon.BackgroundColor3 = COLOR.black
 icon.AutoButtonColor = false
 icon.BorderSizePixel = 0
 icon.Font = Enum.Font.GothamBold
 icon.Text = "DK"
-icon.TextColor3 = C.white
-icon.TextSize = 17
+icon.TextColor3 = COLOR.white
+icon.TextSize = 18
 icon.Visible = false
 icon.ZIndex = 20
 icon.Parent = gui
-round(icon, 29)
-stroke(icon, C.red, 2, 0)
+addCorner(icon, 30)
+addStroke(icon, COLOR.redBright, 2, 0)
 
-minimize.MouseButton1Click:Connect(function()
+local minimized = false
+local closed = false
+
+minimizeButton.MouseButton1Click:Connect(function()
     minimized = true
-    tw(window, 0.3, {Position = UDim2.fromScale(0.5, 1.25)})
-    tw(shadow, 0.3, {Position = UDim2.fromScale(0.5, 1.27)})
-    task.delay(0.22, function() if minimized and not closed then icon.Visible = true end end)
+    animate(card, 0.30, {Position = UDim2.fromScale(0.5, 1.25)})
+    animate(shadow, 0.30, {Position = UDim2.fromScale(0.5, 1.27)})
+    task.delay(0.2, function()
+        if minimized and not closed then
+            icon.Visible = true
+            icon.Size = UDim2.fromOffset(8, 8)
+            animate(icon, 0.24, {Size = UDim2.fromOffset(60, 60)})
+        end
+    end)
 end)
+
 icon.MouseButton1Click:Connect(function()
     minimized = false
     icon.Visible = false
-    tw(window, 0.3, {Position = UDim2.fromScale(0.5, 0.5)})
-    tw(shadow, 0.3, {Position = UDim2.fromScale(0.5, 0.505)})
-end)
-close.MouseButton1Click:Connect(function()
-    closed = true
-    tw(window, 0.25, {Position = UDim2.fromScale(0.5, 1.3)})
-    tw(shadow, 0.25, {Position = UDim2.fromScale(0.5, 1.32)})
-    task.delay(0.28, function() if closed then gui:Destroy() end end)
+    animate(card, 0.30, {Position = UDim2.fromScale(0.5, 0.5)})
+    animate(shadow, 0.30, {Position = UDim2.fromScale(0.5, 0.505)})
 end)
 
--- Drag the header with mouse or touch.
-local dragging, dragStart, startPos = false, nil, nil
+closeButton.MouseButton1Click:Connect(function()
+    closed = true
+    animate(card, 0.25, {Position = UDim2.fromScale(0.5, 1.30)})
+    animate(shadow, 0.25, {Position = UDim2.fromScale(0.5, 1.32)})
+    task.delay(0.28, function()
+        if closed then gui:Destroy() end
+    end)
+end)
+
+-- Drag support for mouse and touch.
+local dragging = false
+local dragStart
+local startPosition
 header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
-        startPos = window.Position
-        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
-    end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local d = input.Position - dragStart
-        window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
-        shadow.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset + 5)
+        startPosition = card.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
     end
 end)
 
--- Public callback table for your own game systems.
-_G.DKHUB_StealAnEgg = {
-    setNotifications = setNotify,
-    setSound = setSound,
-    setEggMarkers = setMarkers,
-    setAutoOpen = setAutoOpen,
-    setCompactNotifications = setCompact,
-}
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        card.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
+        shadow.Position = UDim2.new(card.Position.X.Scale, card.Position.X.Offset, card.Position.Y.Scale, card.Position.Y.Offset + 5)
+    end
+end)
