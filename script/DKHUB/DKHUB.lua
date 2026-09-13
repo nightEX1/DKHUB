@@ -1,67 +1,65 @@
--- DKHUB MOBILE TEST UI
--- Large mobile-friendly visual UI with TEST switches.
--- Visual-only template: switches control UI effects, not game automation.
+-- DKHUB DEVELOPER PANEL
+-- Empty visual framework with Home, Chain and Settings navigation.
+-- No game functions, automation, executor control or external script runner.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-local old = playerGui:FindFirstChild("DKHUB_MOBILE_TEST")
+local old = playerGui:FindFirstChild("DKHUB_DEVELOPER_PANEL")
 if old then old:Destroy() end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "DKHUB_MOBILE_TEST"
+gui.Name = "DKHUB_DEVELOPER_PANEL"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
 local C = {
-    black = Color3.fromRGB(5, 5, 9),
-    panel = Color3.fromRGB(14, 14, 21),
-    panel2 = Color3.fromRGB(24, 23, 34),
+    black = Color3.fromRGB(7, 7, 11),
+    sidebar = Color3.fromRGB(10, 10, 16),
+    panel = Color3.fromRGB(16, 16, 24),
+    card = Color3.fromRGB(24, 23, 34),
     red = Color3.fromRGB(224, 35, 65),
-    pink = Color3.fromRGB(255, 78, 135),
-    purple = Color3.fromRGB(135, 76, 255),
-    cyan = Color3.fromRGB(61, 208, 255),
-    green = Color3.fromRGB(66, 220, 143),
+    pink = Color3.fromRGB(255, 77, 132),
+    purple = Color3.fromRGB(135, 75, 255),
     white = Color3.fromRGB(255, 255, 255),
-    text = Color3.fromRGB(222, 221, 235),
-    muted = Color3.fromRGB(148, 148, 170),
+    text = Color3.fromRGB(222, 221, 234),
+    muted = Color3.fromRGB(145, 145, 167),
 }
 
-local function corner(o, r)
+local function corner(obj, radius)
     local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, r)
-    c.Parent = o
+    c.CornerRadius = UDim.new(0, radius)
+    c.Parent = obj
 end
 
-local function addStroke(o, color, thickness, transparency)
+local function outline(obj, color, thickness, transparency)
     local s = Instance.new("UIStroke")
     s.Color = color
-    s.Thickness = thickness
+    s.Thickness = thickness or 1
     s.Transparency = transparency or 0
-    s.Parent = o
+    s.Parent = obj
     return s
 end
 
-local function tw(o, duration, props, style, direction)
-    local info = TweenInfo.new(duration, style or Enum.EasingStyle.Quint, direction or Enum.EasingDirection.Out)
-    local t = TweenService:Create(o, info, props)
+local function tween(obj, duration, properties, style)
+    local t = TweenService:Create(obj, TweenInfo.new(duration, style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out), properties)
     t:Play()
     return t
 end
 
-local function addGradient(o, name, colors, rotation)
+local function gradient(obj, name, colors, rotation)
     local g = Instance.new("UIGradient")
     g.Name = name
     g.Color = ColorSequence.new(colors)
     g.Rotation = rotation or 0
-    g.Parent = o
+    g.Parent = obj
     return g
 end
 
-local function text(parent, name, value, position, size, font, textSize, color)
+local function makeText(parent, name, value, position, size, font, textSize, color)
     local l = Instance.new("TextLabel")
     l.Name = name
     l.Text = value
@@ -72,29 +70,12 @@ local function text(parent, name, value, position, size, font, textSize, color)
     l.TextSize = textSize or 14
     l.TextColor3 = color or C.text
     l.TextXAlignment = Enum.TextXAlignment.Left
-    l.ZIndex = 8
+    l.ZIndex = 10
     l.Parent = parent
     return l
 end
 
--- Nearly full-screen mobile card; still leaves a thin margin so the game remains visible.
-local aura = Instance.new("Frame")
-aura.Name = "Aura"
-aura.AnchorPoint = Vector2.new(0.5, 0.5)
-aura.Position = UDim2.fromScale(0.5, 0.5)
-aura.Size = UDim2.fromScale(0.97, 0.91)
-aura.BackgroundColor3 = C.red
-aura.BackgroundTransparency = 0.91
-aura.BorderSizePixel = 0
-aura.ZIndex = 0
-aura.Parent = gui
-corner(aura, 26)
-addGradient(aura, "AuraGradient", {
-    ColorSequenceKeypoint.new(0, C.purple),
-    ColorSequenceKeypoint.new(0.5, C.red),
-    ColorSequenceKeypoint.new(1, C.cyan),
-}, 25)
-
+-- Mobile-friendly large panel.
 local shadow = Instance.new("Frame")
 shadow.Name = "Shadow"
 shadow.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -118,22 +99,16 @@ window.ClipsDescendants = true
 window.ZIndex = 2
 window.Parent = gui
 corner(window, 20)
-
-local windowGradient = addGradient(window, "WindowGradient", {
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(26, 14, 34)),
-    ColorSequenceKeypoint.new(0.45, C.panel),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 18, 30)),
-}, 125)
-local frameStroke = addStroke(window, C.red, 2, 0.02)
-local borderGradient = addGradient(frameStroke, "WhiteShine", {
+local windowBorder = outline(window, C.red, 2, 0.02)
+local windowBorderGradient = gradient(windowBorder, "BorderShine", {
     ColorSequenceKeypoint.new(0, C.red),
     ColorSequenceKeypoint.new(0.42, C.red),
     ColorSequenceKeypoint.new(0.50, C.white),
-    ColorSequenceKeypoint.new(0.58, C.pink),
+    ColorSequenceKeypoint.new(0.65, C.pink),
     ColorSequenceKeypoint.new(1, C.purple),
 }, 0)
 
--- Top-most border mask: keeps dark child backgrounds from covering the red edge.
+-- A top-most frame keeps child backgrounds from covering the red edge.
 local borderMask = Instance.new("Frame")
 borderMask.Name = "BorderMask"
 borderMask.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -145,8 +120,8 @@ borderMask.Active = false
 borderMask.ZIndex = 50
 borderMask.Parent = gui
 corner(borderMask, 20)
-local maskStroke = addStroke(borderMask, C.red, 3, 0)
-local maskGradient = addGradient(maskStroke, "MaskShine", {
+local maskStroke = outline(borderMask, C.red, 3, 0)
+gradient(maskStroke, "MaskShine", {
     ColorSequenceKeypoint.new(0, C.red),
     ColorSequenceKeypoint.new(0.45, C.pink),
     ColorSequenceKeypoint.new(0.50, C.white),
@@ -154,84 +129,29 @@ local maskGradient = addGradient(maskStroke, "MaskShine", {
     ColorSequenceKeypoint.new(1, C.red),
 }, 0)
 
-local effects = {
-    gradient = true,
-    border = true,
-    particles = true,
-    pulse = true,
-    glow = true,
-}
-
--- Premium animations.
 task.spawn(function()
     while gui.Parent do
-        if effects.gradient then
-            tw(windowGradient, 4, {Offset = Vector2.new(0.35, 0)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-            tw(windowGradient, 4, {Offset = Vector2.new(-0.35, 0)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-        else task.wait(0.4) end
+        windowBorderGradient.Offset = Vector2.new(-1, 0)
+        tween(windowBorderGradient, 1.65, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+        task.wait(0.5)
     end
 end)
 
-task.spawn(function()
-    while gui.Parent do
-        if effects.border then
-            borderGradient.Offset = Vector2.new(-1, 0)
-            tw(borderGradient, 1.5, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
-            task.wait(0.45)
-        else task.wait(0.4) end
-    end
-end)
-
-task.spawn(function()
-    while gui.Parent do
-        if effects.glow then
-            tw(aura, 2.4, {BackgroundTransparency = 0.95, Size = UDim2.fromScale(0.985, 0.925)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-            tw(aura, 2.4, {BackgroundTransparency = 0.89, Size = UDim2.fromScale(0.97, 0.91)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-        else task.wait(0.4) end
-    end
-end)
-
-local particles = {}
-for i = 1, 14 do
-    local dot = Instance.new("Frame")
-    dot.Name = "TestParticle" .. i
-    dot.AnchorPoint = Vector2.new(0.5, 0.5)
-    dot.Position = UDim2.fromScale(0.08 + ((i * 0.071) % 0.84), 0.15 + ((i * 0.117) % 0.72))
-    dot.Size = UDim2.fromOffset(2 + i % 3, 2 + i % 3)
-    dot.BackgroundColor3 = i % 2 == 0 and C.pink or C.cyan
-    dot.BackgroundTransparency = 0.32
-    dot.BorderSizePixel = 0
-    dot.ZIndex = 4
-    dot.Parent = window
-    corner(dot, 9)
-    table.insert(particles, dot)
-    task.spawn(function()
-        while gui.Parent do
-            if effects.particles then
-                tw(dot, 1.2 + i * 0.04, {BackgroundTransparency = 0.88, Size = UDim2.fromOffset(6, 6)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-                tw(dot, 1.2 + i * 0.04, {BackgroundTransparency = 0.32, Size = UDim2.fromOffset(2 + i % 3, 2 + i % 3)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-            else task.wait(0.4) end
-        end
-    end)
-end
-
--- Header.
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 62)
+header.Size = UDim2.new(1, 0, 0, 60)
 header.BackgroundColor3 = C.black
-header.BackgroundTransparency = 0.03
 header.BorderSizePixel = 0
-header.ZIndex = 6
+header.ZIndex = 5
 header.Parent = window
-addGradient(header, "HeaderGradient", {
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 8, 31)),
+gradient(header, "HeaderGradient", {
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 9, 28)),
     ColorSequenceKeypoint.new(0.5, C.black),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 16, 32)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 15, 28)),
 }, 0)
 
-local title = text(header, "Title", "DKHUB", UDim2.fromOffset(22, 7), UDim2.new(0.55, 0, 0, 29), Enum.Font.GothamBlack, 26, C.white)
-local titleGradient = addGradient(title, "TitleShine", {
+local title = makeText(header, "Title", "DKHUB", UDim2.fromOffset(21, 8), UDim2.new(0.50, 0, 0, 28), Enum.Font.GothamBlack, 24, C.white)
+local titleGradient = gradient(title, "TitleGradient", {
     ColorSequenceKeypoint.new(0, C.white),
     ColorSequenceKeypoint.new(0.45, C.pink),
     ColorSequenceKeypoint.new(0.70, C.purple),
@@ -240,170 +160,188 @@ local titleGradient = addGradient(title, "TitleShine", {
 task.spawn(function()
     while gui.Parent do
         titleGradient.Offset = Vector2.new(-1, 0)
-        tw(titleGradient, 2.2, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
-        task.wait(0.55)
+        tween(titleGradient, 2.3, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+        task.wait(0.5)
     end
 end)
-text(header, "Subtitle", "MOBILE TEST INTERFACE", UDim2.fromOffset(24, 37), UDim2.new(0.65, 0, 0, 14), Enum.Font.GothamMedium, 10, C.muted)
+makeText(header, "Subtitle", "DEVELOPER PANEL  /  EMPTY FRAMEWORK", UDim2.fromOffset(23, 37), UDim2.new(0.70, 0, 0, 14), Enum.Font.GothamMedium, 9, C.muted)
 
-local function headerButton(name, value, x)
+local function headerButton(name, value, offset)
     local b = Instance.new("TextButton")
     b.Name = name
     b.AnchorPoint = Vector2.new(1, 0.5)
-    b.Position = UDim2.new(1, x, 0.5, 0)
-    b.Size = UDim2.fromOffset(40, 38)
-    b.BackgroundColor3 = C.panel2
+    b.Position = UDim2.new(1, offset, 0.5, 0)
+    b.Size = UDim2.fromOffset(39, 37)
+    b.BackgroundColor3 = C.card
     b.AutoButtonColor = false
     b.BorderSizePixel = 0
     b.Font = Enum.Font.GothamBold
     b.Text = value
     b.TextColor3 = C.white
-    b.TextSize = 19
-    b.ZIndex = 9
+    b.TextSize = 18
+    b.ZIndex = 12
     b.Parent = header
     corner(b, 10)
-    local s = addStroke(b, C.red, 1, 0.45)
-    b.MouseEnter:Connect(function() tw(b, 0.15, {BackgroundColor3 = C.redBright}); tw(s, 0.15, {Transparency = 0}) end)
-    b.MouseLeave:Connect(function() tw(b, 0.15, {BackgroundColor3 = C.panel2}); tw(s, 0.15, {Transparency = 0.45}) end)
+    local s = outline(b, C.red, 1, 0.45)
+    b.MouseEnter:Connect(function() tween(b, 0.15, {BackgroundColor3 = C.red}); tween(s, 0.15, {Transparency = 0}) end)
+    b.MouseLeave:Connect(function() tween(b, 0.15, {BackgroundColor3 = C.card}); tween(s, 0.15, {Transparency = 0.45}) end)
     return b
 end
 
 local closeButton = headerButton("Close", "×", -12)
-local minimizeButton = headerButton("Minimize", "□", -61)
+local minimizeButton = headerButton("Minimize", "□", -60)
 local headerLine = Instance.new("Frame")
 headerLine.Name = "HeaderLine"
 headerLine.Position = UDim2.new(0, 20, 1, -1)
 headerLine.Size = UDim2.new(1, -40, 0, 1)
 headerLine.BackgroundColor3 = C.red
 headerLine.BorderSizePixel = 0
-headerLine.ZIndex = 10
+headerLine.ZIndex = 13
 headerLine.Parent = header
-addGradient(headerLine, "LineShine", {
+gradient(headerLine, "LineGradient", {
     ColorSequenceKeypoint.new(0, C.red),
     ColorSequenceKeypoint.new(0.5, C.white),
     ColorSequenceKeypoint.new(1, C.purple),
 }, 0)
 
--- Blank content with TEST showcase.
+-- Sidebar with the three main function icons.
+local sidebar = Instance.new("Frame")
+sidebar.Name = "Sidebar"
+sidebar.Position = UDim2.fromOffset(0, 60)
+sidebar.Size = UDim2.new(0.22, 0, 1, -60)
+sidebar.BackgroundColor3 = C.sidebar
+sidebar.BorderSizePixel = 0
+sidebar.ZIndex = 6
+sidebar.Parent = window
+
+local sidebarLine = Instance.new("Frame")
+sidebarLine.Name = "SidebarLine"
+sidebarLine.Position = UDim2.new(1, -1, 0, 12)
+sidebarLine.Size = UDim2.new(0, 1, 1, -24)
+sidebarLine.BackgroundColor3 = C.red
+sidebarLine.BackgroundTransparency = 0.35
+sidebarLine.BorderSizePixel = 0
+sidebarLine.ZIndex = 9
+sidebarLine.Parent = sidebar
+
+makeText(sidebar, "MenuLabel", "MENU", UDim2.fromScale(0.18, 0.07), UDim2.fromScale(0.64, 0.06), Enum.Font.GothamBold, 10, C.red)
+
 local content = Instance.new("Frame")
-content.Name = "TestContent"
-content.Position = UDim2.fromOffset(0, 62)
-content.Size = UDim2.new(1, 0, 1, -62)
-content.BackgroundTransparency = 1
+content.Name = "Content"
+content.Position = UDim2.new(0.22, 0, 0, 60)
+content.Size = UDim2.new(0.78, 0, 1, -60)
+content.BackgroundColor3 = C.panel
 content.BorderSizePixel = 0
-content.ZIndex = 5
+content.ZIndex = 4
 content.Parent = window
 
-local test = text(content, "TestText", "TEST", UDim2.fromScale(0.08, 0.16), UDim2.fromScale(0.84, 0.17), Enum.Font.GothamBlack, 28, C.white)
-test.TextXAlignment = Enum.TextXAlignment.Center
-local testGradient = addGradient(test, "TestGradient", {
-    ColorSequenceKeypoint.new(0, C.white),
-    ColorSequenceKeypoint.new(0.35, C.pink),
-    ColorSequenceKeypoint.new(0.65, C.purple),
-    ColorSequenceKeypoint.new(1, C.white),
-}, 0)
-task.spawn(function()
-    while gui.Parent do
-        if effects.gradient then
-            testGradient.Offset = Vector2.new(-1, 0)
-            tw(testGradient, 1.9, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
-            task.wait(0.5)
-        else task.wait(0.4) end
-    end
-end)
-
-local pulseOrb = Instance.new("Frame")
-pulseOrb.Name = "PulseOrb"
-pulseOrb.AnchorPoint = Vector2.new(0.5, 0.5)
-pulseOrb.Position = UDim2.fromScale(0.5, 0.49)
-pulseOrb.Size = UDim2.fromOffset(10, 10)
-pulseOrb.BackgroundColor3 = C.white
-pulseOrb.BorderSizePixel = 0
-pulseOrb.ZIndex = 7
-pulseOrb.Parent = content
-corner(pulseOrb, 10)
-local pulseStroke = addStroke(pulseOrb, C.pink, 2, 0)
-
-task.spawn(function()
-    while gui.Parent do
-        if effects.pulse then
-            tw(pulseOrb, 1.3, {Size = UDim2.fromOffset(22, 22), BackgroundTransparency = 0.25}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-            tw(pulseOrb, 1.3, {Size = UDim2.fromOffset(10, 10), BackgroundTransparency = 0}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Wait()
-        else task.wait(0.4) end
-    end
-end)
-
-local underline = Instance.new("Frame")
-underline.Name = "TestUnderline"
-underline.AnchorPoint = Vector2.new(0.5, 0)
-underline.Position = UDim2.fromScale(0.5, 0.36)
-underline.Size = UDim2.fromScale(0.20, 0.008)
-underline.BackgroundColor3 = C.red
-underline.BorderSizePixel = 0
-underline.ZIndex = 7
-underline.Parent = content
-corner(underline, 10)
-addGradient(underline, "UnderlineGradient", {
-    ColorSequenceKeypoint.new(0, C.red),
-    ColorSequenceKeypoint.new(0.5, C.white),
-    ColorSequenceKeypoint.new(1, C.purple),
-}, 0)
-
-local switchLabel = text(content, "SwitchTitle", "VISUAL TEST SWITCHES", UDim2.fromScale(0.08, 0.55), UDim2.fromScale(0.84, 0.07), Enum.Font.GothamBold, 11, C.redBright)
-switchLabel.TextXAlignment = Enum.TextXAlignment.Center
-
-local function makeSwitch(name, labelText, y, default, effectName)
-    local row = Instance.new("Frame")
-    row.Name = name .. "Row"
-    row.Position = UDim2.fromScale(0.08, y)
-    row.Size = UDim2.fromScale(0.84, 0.095)
-    row.BackgroundColor3 = C.panel2
-    row.BackgroundTransparency = 0.16
-    row.BorderSizePixel = 0
-    row.ZIndex = 7
-    row.Parent = content
-    corner(row, 9)
-    text(row, "Label", labelText, UDim2.fromScale(0.05, 0.18), UDim2.fromScale(0.66, 0.64), Enum.Font.GothamSemibold, 12, C.text)
-    local button = Instance.new("TextButton")
-    button.Name = "Switch"
-    button.Position = UDim2.fromScale(0.79, 0.23)
-    button.Size = UDim2.fromScale(0.15, 0.54)
-    button.BackgroundColor3 = default and C.red or C.black
-    button.AutoButtonColor = false
-    button.BorderSizePixel = 0
-    button.Text = ""
-    button.ZIndex = 9
-    button.Parent = row
-    corner(button, 20)
-    local knob = Instance.new("Frame")
-    knob.Name = "Knob"
-    knob.Size = UDim2.fromScale(0.38, 0.72)
-    knob.Position = default and UDim2.fromScale(0.57, 0.14) or UDim2.fromScale(0.05, 0.14)
-    knob.BackgroundColor3 = C.white
-    knob.BorderSizePixel = 0
-    knob.ZIndex = 10
-    knob.Parent = button
-    corner(knob, 20)
-    local enabled = default
-    local function render(value)
-        enabled = value
-        tw(button, 0.20, {BackgroundColor3 = enabled and C.red or C.black})
-        tw(knob, 0.20, {Position = enabled and UDim2.fromScale(0.57, 0.14) or UDim2.fromScale(0.05, 0.14)})
-        effects[effectName] = enabled
-    end
-    button.MouseButton1Click:Connect(function() render(not enabled) end)
-    return render
+local tabs = {}
+local pages = {}
+local function createPage(name)
+    local p = Instance.new("Frame")
+    p.Name = name .. "Page"
+    p.Size = UDim2.fromScale(1, 1)
+    p.BackgroundTransparency = 1
+    p.Visible = false
+    p.ZIndex = 5
+    p.Parent = content
+    pages[name] = p
+    return p
 end
 
-makeSwitch("Gradient", "Gradient Color", 0.64, true, "gradient")
-makeSwitch("Border", "Border Shine", 0.745, true, "border")
-makeSwitch("Particles", "Light Particles", 0.85, true, "particles")
+local function createTab(name, symbol, caption, y)
+    local b = Instance.new("TextButton")
+    b.Name = name .. "Tab"
+    b.Position = UDim2.fromScale(0.14, y)
+    b.Size = UDim2.fromScale(0.72, 0.12)
+    b.BackgroundColor3 = C.sidebar
+    b.AutoButtonColor = false
+    b.BorderSizePixel = 0
+    b.Text = ""
+    b.ZIndex = 11
+    b.Parent = sidebar
+    corner(b, 10)
+    local icon = makeText(b, "Icon", symbol, UDim2.fromScale(0.12, 0.12), UDim2.fromScale(0.28, 0.72), Enum.Font.GothamBold, 22, C.muted)
+    icon.TextXAlignment = Enum.TextXAlignment.Center
+    local captionLabel = makeText(b, "Caption", caption, UDim2.fromScale(0.42, 0.20), UDim2.fromScale(0.52, 0.58), Enum.Font.GothamSemibold, 11, C.muted)
+    tabs[name] = {button = b, icon = icon, caption = captionLabel}
+    return b
+end
+
+local home = createPage("Home")
+local chain = createPage("Chain")
+local settings = createPage("Settings")
+
+local function setActive(name)
+    for tabName, data in pairs(tabs) do
+        local active = tabName == name
+        tween(data.button, 0.18, {BackgroundColor3 = active and C.red or C.sidebar})
+        tween(data.icon, 0.18, {TextColor3 = active and C.white or C.muted})
+        tween(data.caption, 0.18, {TextColor3 = active and C.white or C.muted})
+    end
+    for pageName, page in pairs(pages) do
+        page.Visible = pageName == name
+    end
+end
+
+local homeTab = createTab("Home", "⌂", "HOME", 0.17)
+local chainTab = createTab("Chain", "⛓", "CHAIN", 0.32)
+local settingsTab = createTab("Settings", "⚙", "SETTINGS", 0.47)
+makeText(sidebar, "Footer", "DKHUB UI", UDim2.fromScale(0.18, 0.90), UDim2.fromScale(0.64, 0.06), Enum.Font.GothamMedium, 9, C.muted)
+
+local function emptyPage(page, heading, subheading, symbol)
+    local badge = Instance.new("Frame")
+    badge.Name = "IconBadge"
+    badge.AnchorPoint = Vector2.new(0.5, 0)
+    badge.Position = UDim2.fromScale(0.5, 0.13)
+    badge.Size = UDim2.fromOffset(62, 62)
+    badge.BackgroundColor3 = C.card
+    badge.BorderSizePixel = 0
+    badge.ZIndex = 7
+    badge.Parent = page
+    corner(badge, 18)
+    local bs = outline(badge, C.red, 1, 0.2)
+    gradient(bs, "BadgeGradient", {
+        ColorSequenceKeypoint.new(0, C.red),
+        ColorSequenceKeypoint.new(0.5, C.white),
+        ColorSequenceKeypoint.new(1, C.purple),
+    }, 0)
+    local icon = makeText(badge, "Symbol", symbol, UDim2.fromScale(0.08, 0.03), UDim2.fromScale(0.84, 0.94), Enum.Font.GothamBold, 30, C.white)
+    icon.TextXAlignment = Enum.TextXAlignment.Center
+    local h = makeText(page, "Heading", heading, UDim2.fromScale(0.08, 0.38), UDim2.fromScale(0.84, 0.10), Enum.Font.GothamBold, 20, C.white)
+    h.TextXAlignment = Enum.TextXAlignment.Center
+    local s = makeText(page, "Subheading", subheading, UDim2.fromScale(0.08, 0.50), UDim2.fromScale(0.84, 0.10), Enum.Font.Gotham, 11, C.muted)
+    s.TextXAlignment = Enum.TextXAlignment.Center
+    local empty = Instance.new("Frame")
+    empty.Name = "EmptySlot"
+    empty.AnchorPoint = Vector2.new(0.5, 0)
+    empty.Position = UDim2.fromScale(0.5, 0.69)
+    empty.Size = UDim2.fromScale(0.70, 0.10)
+    empty.BackgroundColor3 = C.card
+    empty.BackgroundTransparency = 0.25
+    empty.BorderSizePixel = 0
+    empty.ZIndex = 7
+    empty.Parent = page
+    corner(empty, 10)
+    outline(empty, C.red, 1, 0.65)
+    local slot = makeText(empty, "SlotText", "EMPTY FUNCTION SLOT", UDim2.fromScale(0.05, 0.12), UDim2.fromScale(0.90, 0.76), Enum.Font.GothamMedium, 10, C.muted)
+    slot.TextXAlignment = Enum.TextXAlignment.Center
+end
+
+emptyPage(home, "HOME", "พื้นที่ว่างสำหรับฟังก์ชันหลักในอนาคต", "⌂")
+emptyPage(chain, "CHAIN", "พื้นที่ว่างสำหรับฟังก์ชันเชนในอนาคต", "⛓")
+emptyPage(settings, "SETTINGS", "พื้นที่ว่างสำหรับการตั้งค่าในอนาคต", "⚙")
+
+homeTab.MouseButton1Click:Connect(function() setActive("Home") end)
+chainTab.MouseButton1Click:Connect(function() setActive("Chain") end)
+settingsTab.MouseButton1Click:Connect(function() setActive("Settings") end)
+setActive("Home")
 
 -- Minimize icon.
 local icon = Instance.new("TextButton")
 icon.Name = "DKHUB_Icon"
 icon.AnchorPoint = Vector2.new(0.5, 0.5)
-icon.Position = UDim2.fromScale(0.87, 0.84)
+icon.Position = UDim2.fromScale(0.86, 0.84)
 icon.Size = UDim2.fromOffset(66, 66)
 icon.BackgroundColor3 = C.black
 icon.AutoButtonColor = false
@@ -416,8 +354,8 @@ icon.Visible = false
 icon.ZIndex = 30
 icon.Parent = gui
 corner(icon, 33)
-local iconStroke = addStroke(icon, C.pink, 2, 0)
-addGradient(iconStroke, "IconShine", {
+local iconBorder = outline(icon, C.pink, 2, 0)
+gradient(iconBorder, "IconGradient", {
     ColorSequenceKeypoint.new(0, C.red),
     ColorSequenceKeypoint.new(0.5, C.white),
     ColorSequenceKeypoint.new(1, C.purple),
@@ -431,15 +369,14 @@ local iconDragStart
 local iconStartPosition
 minimizeButton.MouseButton1Click:Connect(function()
     minimized = true
-    tw(window, 0.40, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
-    tw(shadow, 0.40, {Position = UDim2.fromScale(0.5, 1.32)}, Enum.EasingStyle.Back)
-    tw(aura, 0.40, {Position = UDim2.fromScale(0.5, 1.28)}, Enum.EasingStyle.Back)
-    tw(borderMask, 0.40, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
-    task.delay(0.24, function()
+    tween(window, 0.4, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
+    tween(shadow, 0.4, {Position = UDim2.fromScale(0.5, 1.32)}, Enum.EasingStyle.Back)
+    tween(borderMask, 0.4, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
+    task.delay(0.25, function()
         if minimized and not closed then
             icon.Visible = true
             icon.Size = UDim2.fromOffset(8, 8)
-            tw(icon, 0.35, {Size = UDim2.fromOffset(66, 66)}, Enum.EasingStyle.Back)
+            tween(icon, 0.35, {Size = UDim2.fromOffset(66, 66)}, Enum.EasingStyle.Back)
         end
     end)
 end)
@@ -450,20 +387,18 @@ icon.MouseButton1Click:Connect(function()
     end
     minimized = false
     icon.Visible = false
-    tw(window, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
-    tw(shadow, 0.42, {Position = UDim2.fromScale(0.5, 0.505)}, Enum.EasingStyle.Back)
-    tw(aura, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
-    tw(borderMask, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
+    tween(window, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
+    tween(shadow, 0.42, {Position = UDim2.fromScale(0.5, 0.505)}, Enum.EasingStyle.Back)
+    tween(borderMask, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
 end)
 closeButton.MouseButton1Click:Connect(function()
     closed = true
-    tw(window, 0.30, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
-    tw(shadow, 0.30, {Position = UDim2.fromScale(0.5, 1.37)}, Enum.EasingStyle.Back)
-    tw(borderMask, 0.30, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
+    tween(window, 0.3, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
+    tween(shadow, 0.3, {Position = UDim2.fromScale(0.5, 1.37)}, Enum.EasingStyle.Back)
+    tween(borderMask, 0.3, {Position = UDim2.fromScale(0.5, 1.35)}, Enum.EasingStyle.Back)
     task.delay(0.34, function() if closed then gui:Destroy() end end)
 end)
 
--- The minimized icon can be repositioned on touch or mouse.
 icon.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         iconDragging = true
@@ -471,24 +406,20 @@ icon.InputBegan:Connect(function(input)
         iconDragStart = input.Position
         iconStartPosition = icon.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                iconDragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then iconDragging = false end
         end)
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
     if iconDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - iconDragStart
-        if math.abs(delta.X) > 4 or math.abs(delta.Y) > 4 then
-            iconMoved = true
-        end
-        icon.Position = UDim2.new(iconStartPosition.X.Scale, iconStartPosition.X.Offset + delta.X, iconStartPosition.Y.Scale, iconStartPosition.Y.Offset + delta.Y)
+        local d = input.Position - iconDragStart
+        if math.abs(d.X) > 4 or math.abs(d.Y) > 4 then iconMoved = true end
+        icon.Position = UDim2.new(iconStartPosition.X.Scale, iconStartPosition.X.Offset + d.X, iconStartPosition.Y.Scale, iconStartPosition.Y.Offset + d.Y)
     end
 end)
 
--- Drag support for mouse and touch.
+-- Drag the window using the header.
 local dragging = false
 local dragStart
 local startPosition
@@ -505,7 +436,6 @@ UserInputService.InputChanged:Connect(function(input)
         local d = input.Position - dragStart
         window.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + d.X, startPosition.Y.Scale, startPosition.Y.Offset + d.Y)
         shadow.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset + 5)
-        aura.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset)
         borderMask.Position = window.Position
     end
 end)
