@@ -315,8 +315,8 @@ local function emptyPage(page, heading, subheading, symbol)
     local empty = Instance.new("Frame")
     empty.Name = "EmptySlot"
     empty.AnchorPoint = Vector2.new(0.5, 0)
-    empty.Position = UDim2.fromScale(0.5, 0.69)
-    empty.Size = UDim2.fromScale(0.70, 0.10)
+    empty.Position = UDim2.fromScale(0.5, 0.57)
+    empty.Size = UDim2.fromScale(0.70, 0.07)
     empty.BackgroundColor3 = C.card
     empty.BackgroundTransparency = 0.25
     empty.BorderSizePixel = 0
@@ -331,6 +331,92 @@ end
 emptyPage(home, "HOME", "พื้นที่ว่างสำหรับฟังก์ชันหลักในอนาคต", "⌂")
 emptyPage(chain, "CHAIN", "พื้นที่ว่างสำหรับฟังก์ชันเชนในอนาคต", "⛓")
 emptyPage(settings, "SETTINGS", "พื้นที่ว่างสำหรับการตั้งค่าในอนาคต", "⚙")
+
+-- Reusable visual controls for the empty framework.
+local function makeToggle(parent, name, caption, position, default, callback)
+    local row = Instance.new("Frame")
+    row.Name = name .. "Row"
+    row.Position = position
+    row.Size = UDim2.fromScale(0.84, 0.105)
+    row.BackgroundColor3 = C.card
+    row.BackgroundTransparency = 0.12
+    row.BorderSizePixel = 0
+    row.ZIndex = 12
+    row.Parent = parent
+    corner(row, 9)
+    makeText(row, "Caption", caption, UDim2.fromScale(0.06, 0.18), UDim2.fromScale(0.62, 0.64), Enum.Font.GothamSemibold, 11, C.text)
+    local button = Instance.new("TextButton")
+    button.Name = "Switch"
+    button.Position = UDim2.fromScale(0.79, 0.23)
+    button.Size = UDim2.fromScale(0.15, 0.54)
+    button.BackgroundColor3 = default and C.red or C.black
+    button.AutoButtonColor = false
+    button.BorderSizePixel = 0
+    button.Text = ""
+    button.ZIndex = 14
+    button.Parent = row
+    corner(button, 20)
+    local knob = Instance.new("Frame")
+    knob.Name = "Knob"
+    knob.Size = UDim2.fromScale(0.38, 0.72)
+    knob.Position = default and UDim2.fromScale(0.57, 0.14) or UDim2.fromScale(0.05, 0.14)
+    knob.BackgroundColor3 = C.white
+    knob.BorderSizePixel = 0
+    knob.ZIndex = 15
+    knob.Parent = button
+    corner(knob, 20)
+    local enabled = default
+    local function render(value)
+        enabled = value
+        tween(button, 0.18, {BackgroundColor3 = enabled and C.red or C.black})
+        tween(knob, 0.18, {Position = enabled and UDim2.fromScale(0.57, 0.14) or UDim2.fromScale(0.05, 0.14)})
+        if callback then callback(enabled) end
+    end
+    button.MouseButton1Click:Connect(function() render(not enabled) end)
+    return render
+end
+
+local function makeModuleSlot(parent, name, caption, position)
+    local slot = Instance.new("TextButton")
+    slot.Name = name
+    slot.Position = position
+    slot.Size = UDim2.fromScale(0.84, 0.105)
+    slot.BackgroundColor3 = C.card
+    slot.AutoButtonColor = false
+    slot.BorderSizePixel = 0
+    slot.Text = ""
+    slot.ZIndex = 12
+    slot.Parent = parent
+    corner(slot, 9)
+    outline(slot, C.red, 1, 0.60)
+    makeText(slot, "Caption", caption, UDim2.fromScale(0.06, 0.17), UDim2.fromScale(0.62, 0.66), Enum.Font.GothamSemibold, 11, C.text)
+    local empty = makeText(slot, "State", "EMPTY", UDim2.fromScale(0.70, 0.17), UDim2.fromScale(0.24, 0.66), Enum.Font.GothamBold, 10, C.muted)
+    empty.TextXAlignment = Enum.TextXAlignment.Right
+    slot.MouseEnter:Connect(function() tween(slot, 0.15, {BackgroundColor3 = Color3.fromRGB(38, 27, 45)}) end)
+    slot.MouseLeave:Connect(function() tween(slot, 0.15, {BackgroundColor3 = C.card}) end)
+    return slot
+end
+
+makeText(home, "QuickTitle", "QUICK CONTROLS", UDim2.fromScale(0.08, 0.67), UDim2.fromScale(0.84, 0.05), Enum.Font.GothamBold, 10, C.red)
+makeToggle(home, "HomeAnimation", "UI Animations", UDim2.fromScale(0.08, 0.73), true, function(value)
+    windowBorderGradient.Enabled = value
+    titleGradient.Enabled = value
+end)
+makeToggle(home, "HomeGlow", "Glow Effects", UDim2.fromScale(0.08, 0.85), true, function(value)
+    shadow.BackgroundTransparency = value and 0.22 or 0.65
+end)
+
+makeText(chain, "ModuleTitle", "MODULE SLOTS", UDim2.fromScale(0.08, 0.67), UDim2.fromScale(0.84, 0.05), Enum.Font.GothamBold, 10, C.red)
+makeModuleSlot(chain, "Module01", "Module Slot 01", UDim2.fromScale(0.08, 0.73))
+makeModuleSlot(chain, "Module02", "Module Slot 02", UDim2.fromScale(0.08, 0.85))
+
+makeText(settings, "SettingTitle", "INTERFACE SETTINGS", UDim2.fromScale(0.08, 0.67), UDim2.fromScale(0.84, 0.05), Enum.Font.GothamBold, 10, C.red)
+makeToggle(settings, "BorderSetting", "Border Shine", UDim2.fromScale(0.08, 0.73), true, function(value)
+    windowBorderGradient.Enabled = value
+end)
+makeToggle(settings, "HeaderSetting", "Header Glow", UDim2.fromScale(0.08, 0.85), true, function(value)
+    header.BackgroundTransparency = value and 0 or 0.18
+end)
 
 homeTab.MouseButton1Click:Connect(function() setActive("Home") end)
 chainTab.MouseButton1Click:Connect(function() setActive("Chain") end)
@@ -374,6 +460,9 @@ minimizeButton.MouseButton1Click:Connect(function()
     tween(borderMask, 0.4, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
     task.delay(0.25, function()
         if minimized and not closed then
+            window.Visible = false
+            shadow.Visible = false
+            borderMask.Visible = false
             icon.Visible = true
             icon.Size = UDim2.fromOffset(8, 8)
             tween(icon, 0.35, {Size = UDim2.fromOffset(66, 66)}, Enum.EasingStyle.Back)
@@ -387,6 +476,12 @@ icon.MouseButton1Click:Connect(function()
     end
     minimized = false
     icon.Visible = false
+    window.Visible = true
+    shadow.Visible = true
+    borderMask.Visible = true
+    window.Position = UDim2.fromScale(0.5, 1.30)
+    shadow.Position = UDim2.fromScale(0.5, 1.32)
+    borderMask.Position = UDim2.fromScale(0.5, 1.30)
     tween(window, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
     tween(shadow, 0.42, {Position = UDim2.fromScale(0.5, 0.505)}, Enum.EasingStyle.Back)
     tween(borderMask, 0.42, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
