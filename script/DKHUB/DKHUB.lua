@@ -135,10 +135,39 @@ local edgeGradient = makeGradient(windowStroke, "EdgeFlow", {
     ColorSequenceKeypoint.new(1, C.red),
 }, 0)
 
+-- Final edge layer stays above every child panel, preventing dark backgrounds from leaking over the neon frame.
+local edgeMask = Instance.new("Frame")
+edgeMask.Name = "EdgeMask"
+edgeMask.AnchorPoint = Vector2.new(0.5, 0.5)
+edgeMask.Position = window.Position
+edgeMask.Size = window.Size
+edgeMask.BackgroundTransparency = 1
+edgeMask.BorderSizePixel = 0
+edgeMask.Active = false
+edgeMask.ZIndex = 60
+edgeMask.Parent = gui
+round(edgeMask, 14)
+local edgeMaskStroke = stroke(edgeMask, C.magenta, 3, 0)
+local edgeMaskGradient = makeGradient(edgeMaskStroke, "EdgeMaskFlow", {
+    ColorSequenceKeypoint.new(0, C.red),
+    ColorSequenceKeypoint.new(0.30, C.magenta),
+    ColorSequenceKeypoint.new(0.50, C.cyan),
+    ColorSequenceKeypoint.new(0.75, C.purple),
+    ColorSequenceKeypoint.new(1, C.red),
+}, 0)
+
 task.spawn(function()
     while gui.Parent do
         edgeGradient.Offset = Vector2.new(-1, 0)
         tween(edgeGradient, 1.35, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
+        task.wait(0.35)
+    end
+end)
+
+task.spawn(function()
+    while gui.Parent do
+        edgeMaskGradient.Offset = Vector2.new(-1, 0)
+        tween(edgeMaskGradient, 1.35, {Offset = Vector2.new(1, 0)}, Enum.EasingStyle.Linear).Completed:Wait()
         task.wait(0.35)
     end
 end)
@@ -265,7 +294,18 @@ local function navButton(name, symbol, caption, y)
     round(b, 8)
     local ico = makeText(b, "Icon", symbol, UDim2.fromScale(0.08, 0.08), UDim2.fromScale(0.84, 0.45), Enum.Font.GothamBold, 22, C.muted, Enum.TextXAlignment.Center)
     local cap = makeText(b, "Caption", caption, UDim2.fromScale(0.06, 0.51), UDim2.fromScale(0.88, 0.31), Enum.Font.GothamBold, 8, C.muted, Enum.TextXAlignment.Center)
-    tabs[name] = {button = b, icon = ico, caption = cap}
+    local activeBar = Instance.new("Frame")
+    activeBar.Name = "ActiveBar"
+    activeBar.AnchorPoint = Vector2.new(0.5, 1)
+    activeBar.Position = UDim2.fromScale(0.5, 1)
+    activeBar.Size = UDim2.fromScale(0.45, 0.035)
+    activeBar.BackgroundColor3 = C.cyan
+    activeBar.BackgroundTransparency = 1
+    activeBar.BorderSizePixel = 0
+    activeBar.ZIndex = 15
+    activeBar.Parent = b
+    round(activeBar, 6)
+    tabs[name] = {button = b, icon = ico, caption = cap, activeBar = activeBar}
     return b
 end
 local homeNav = navButton("Home", "⌂", "HOME", 0.16)
@@ -279,6 +319,7 @@ local function activate(name)
         tween(data.button, 0.16, {BackgroundColor3 = on and C.red or C.black})
         tween(data.icon, 0.16, {TextColor3 = on and C.white or C.muted})
         tween(data.caption, 0.16, {TextColor3 = on and C.white or C.muted})
+        tween(data.activeBar, 0.16, {BackgroundTransparency = on and 0 or 1, Size = on and UDim2.fromScale(0.45, 0.035) or UDim2.fromScale(0.18, 0.035)})
     end
     for n, p in pairs(pages) do p.Visible = n == name end
 end
@@ -429,11 +470,13 @@ minimize.MouseButton1Click:Connect(function()
     tween(window, 0.28, {Position = UDim2.fromScale(0.5, 1.32)}, Enum.EasingStyle.Back)
     tween(shadow, 0.28, {Position = UDim2.fromScale(0.5, 1.34)}, Enum.EasingStyle.Back)
     tween(aura, 0.28, {Position = UDim2.fromScale(0.5, 1.30)}, Enum.EasingStyle.Back)
+    tween(edgeMask, 0.28, {Position = UDim2.fromScale(0.5, 1.32)}, Enum.EasingStyle.Back)
     task.delay(0.20, function()
         if minimized and not closed then
             window.Visible = false
             shadow.Visible = false
             aura.Visible = false
+            edgeMask.Visible = false
             icon.Visible = true
             icon.Size = UDim2.fromOffset(8, 8)
             tween(icon, 0.30, {Size = UDim2.fromOffset(64, 64)}, Enum.EasingStyle.Back)
@@ -451,18 +494,22 @@ icon.MouseButton1Click:Connect(function()
     window.Visible = true
     shadow.Visible = true
     aura.Visible = true
+    edgeMask.Visible = true
     window.Position = UDim2.fromScale(0.5, 1.32)
     shadow.Position = UDim2.fromScale(0.5, 1.34)
     aura.Position = UDim2.fromScale(0.5, 1.30)
+    edgeMask.Position = UDim2.fromScale(0.5, 1.32)
     tween(window, 0.36, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
     tween(shadow, 0.36, {Position = UDim2.fromScale(0.5, 0.505)}, Enum.EasingStyle.Back)
     tween(aura, 0.36, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
+    tween(edgeMask, 0.36, {Position = UDim2.fromScale(0.5, 0.5)}, Enum.EasingStyle.Back)
 end)
 
 close.MouseButton1Click:Connect(function()
     closed = true
     tween(window, 0.25, {Position = UDim2.fromScale(0.5, 1.38)}, Enum.EasingStyle.Back)
     tween(shadow, 0.25, {Position = UDim2.fromScale(0.5, 1.40)}, Enum.EasingStyle.Back)
+    tween(edgeMask, 0.25, {Position = UDim2.fromScale(0.5, 1.38)}, Enum.EasingStyle.Back)
     task.delay(0.30, function() if closed then gui:Destroy() end end)
 end)
 
@@ -502,5 +549,6 @@ UserInputService.InputChanged:Connect(function(input)
         window.Position = UDim2.new(windowOrigin.X.Scale, windowOrigin.X.Offset + d.X, windowOrigin.Y.Scale, windowOrigin.Y.Offset + d.Y)
         shadow.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset + 5)
         aura.Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, window.Position.Y.Scale, window.Position.Y.Offset)
+        edgeMask.Position = window.Position
     end
 end)
