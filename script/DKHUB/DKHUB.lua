@@ -29,6 +29,7 @@ local C = {
     text = Color3.fromRGB(220, 220, 230),
     muted = Color3.fromRGB(135, 137, 151),
     off = Color3.fromRGB(61, 63, 73),
+    card = Color3.fromRGB(25, 26, 34),
 }
 
 local FONT = {
@@ -98,6 +99,8 @@ shadow.BorderSizePixel = 0
 shadow.ZIndex = 1
 shadow.Parent = gui
 corner(shadow, 18)
+
+local aura = shadow
 
 local window = Instance.new("Frame")
 window.Name = "DKHUB"
@@ -373,7 +376,7 @@ icon.TextSize = 18
 icon.Visible = false
 icon.ZIndex = 40
 icon.Parent = gui
-round(icon, 14)
+corner(icon, 14)
 stroke(icon, C.red, 2, 0)
 local iconTop = Instance.new("Frame")
 iconTop.Name = "IconTop"
