@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local TweenService = game:GetService("TweenService")
 
 -- ============================================================================
@@ -39,7 +40,7 @@ local UILibrary = (function()
         local content = options.Content or ""
         local duration = options.Duration or 3.5
 
-        local container = CoreGui
+        local container = PlayerGui
         local notifGui = container:FindFirstChild("DKHUB_Notif")
         if not notifGui then
             notifGui = Instance.new("ScreenGui")
@@ -115,7 +116,7 @@ local UILibrary = (function()
         options = options or {}
         local titleText = options.Title or "DKHUB"
 
-        local container = CoreGui
+        local container = PlayerGui
         local existing = container:FindFirstChild("DKHUB_Main")
         if existing then existing:Destroy() end
 
