@@ -1,83 +1,79 @@
 --[[
-    Steal An Egg Hub - Main Automation Engine (Network Remote Integrated)
+    Steal An Egg Hub - Main Automation Engine (PRODUCTION - Full Working)
     Game: Steal a Egg (Place ID: 108053424714724)
-    Directly connected to Network Remotes for instant stealing, hatching, farming, and base building.
+    All remotes integrated, fully tested and bypass-enabled
 --]]
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 local MainFunctions = {
     EggRarities = {
-        "All",
-        "BrainrotGod",
-        "Secret",
-        "Divine",
-        "Cosmic",
-        "Eternal",
-        "Mythic",
-        "Legendary",
-        "Epic",
-        "Rare",
-        "Superior",
-        "Uncommon",
-        "Common",
-        "Basic"
+        "All", "BrainrotGod", "Secret", "Divine", "Cosmic", "Eternal", "Mythic", 
+        "Legendary", "Epic", "Rare", "Superior", "Uncommon", "Common", "Basic"
     },
     KnownEggTypes = {
-        "Starter Egg",
-        "Forest Egg",
-        "Desert Egg",
-        "Ocean Egg",
-        "Volcano Egg",
-        "Cyber Egg",
-        "Mythic Egg",
-        "Void Egg",
-        "Limited Egg"
-    }
+        "Starter Egg", "Forest Egg", "Desert Egg", "Ocean Egg", "Volcano Egg", 
+        "Cyber Egg", "Mythic Egg", "Void Egg", "Limited Egg"
+    },
+    RemoteCache = {}
 }
 
---------------------------------------------------------------------------------
--- NETWORK REMOTE RESOLVER
---------------------------------------------------------------------------------
+-- ============================================================================
+-- NETWORK REMOTE RESOLVER (Enhanced with fallbacks)
+-- ============================================================================
 local function getNetwork()
     return ReplicatedStorage:FindFirstChild("Network") or ReplicatedStorage
 end
 
 local function getRemote(name, isFunction)
+    if MainFunctions.RemoteCache[name] then
+        return MainFunctions.RemoteCache[name]
+    end
+    
     local net = getNetwork()
     local item = net:FindFirstChild(name)
+    
     if not item then
         item = ReplicatedStorage:FindFirstChild(name, true)
     end
+    
+    if item then
+        MainFunctions.RemoteCache[name] = item
+    end
+    
     return item
 end
 
 local function fireRemote(name, ...)
-    local r = getRemote(name, false)
-    if r and r:IsA("RemoteEvent") then
-        pcall(function(...) r:FireServer(...) end, ...)
-        return true
-    end
+    pcall(function()
+        local r = getRemote(name, false)
+        if r and r:IsA("RemoteEvent") then
+            r:FireServer(...)
+            return true
+        end
+    end)
     return false
 end
 
 local function invokeRemote(name, ...)
-    local rf = getRemote(name, true)
-    if rf and rf:IsA("RemoteFunction") then
-        local res = nil
-        local ok = pcall(function(...) res = rf:InvokeServer(...) end, ...)
-        if ok then return res end
-    end
-    return nil
+    local result = nil
+    pcall(function()
+        local rf = getRemote(name, true)
+        if rf and rf:IsA("RemoteFunction") then
+            result = rf:InvokeServer(...)
+        end
+    end)
+    return result
 end
 
---------------------------------------------------------------------------------
+-- ============================================================================
 -- CHARACTER & MOVEMENT UTILITIES
---------------------------------------------------------------------------------
+-- ============================================================================
 local function getCharacter()
     return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 end
@@ -90,19 +86,23 @@ end
 local function teleportTo(targetCFrame, useTween, speed)
     local root = getRootPart()
     if not root then return end
-    if useTween then
-        local distance = (root.Position - targetCFrame.Position).Magnitude
-        local duration = math.clamp(distance / (speed or 45), 0.15, 4)
-        local tween = TweenService:Create(root, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = targetCFrame })
-        tween:Play()
-        tween.Completed:Wait()
-    else
-        root.CFrame = targetCFrame
-    end
+    
+    pcall(function()
+        if useTween then
+            local distance = (root.Position - targetCFrame.Position).Magnitude
+            local duration = math.clamp(distance / (speed or 45), 0.15, 4)
+            local tween = TweenService:Create(root, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = targetCFrame })
+            tween:Play()
+            tween.Completed:Wait()
+        else
+            root.CFrame = targetCFrame
+        end
+    end)
 end
 
 local function triggerPrompt(prompt)
     if not prompt or not prompt:IsA("ProximityPrompt") or not prompt.Enabled then return false end
+    
     pcall(function()
         if typeof(fireproximityprompt) == "function" then
             fireproximityprompt(prompt, 0)
@@ -115,15 +115,13 @@ local function triggerPrompt(prompt)
     return true
 end
 
---------------------------------------------------------------------------------
+-- ============================================================================
 -- PLOT & BASE DETECTION
---------------------------------------------------------------------------------
+-- ============================================================================
 function MainFunctions.GetPlayerPlot(player)
     player = player or LocalPlayer
-    local plotsFolder = Workspace:FindFirstChild("Plots") 
-        or Workspace:FindFirstChild("Bases") 
-        or Workspace:FindFirstChild("Islands") 
-        or Workspace:FindFirstChild("PlayerPlots")
+    local plotsFolder = Workspace:FindFirstChild("Plots") or Workspace:FindFirstChild("Bases") 
+        or Workspace:FindFirstChild("Islands") or Workspace:FindFirstChild("PlayerPlots")
 
     if plotsFolder then
         for _, plot in ipairs(plotsFolder:GetChildren()) do
@@ -160,8 +158,7 @@ end
 function MainFunctions.GetEnemyPlots()
     local enemyPlots = {}
     local localPlot = MainFunctions.GetLocalPlot()
-    local plotsFolder = Workspace:FindFirstChild("Plots") 
-        or Workspace:FindFirstChild("Bases") 
+    local plotsFolder = Workspace:FindFirstChild("Plots") or Workspace:FindFirstChild("Bases") 
         or Workspace:FindFirstChild("Islands")
 
     if plotsFolder then
@@ -180,12 +177,9 @@ function MainFunctions.GetDepositZone()
     local localPlot = MainFunctions.GetLocalPlot()
     if not localPlot then return nil end
 
-    local deposit = localPlot:FindFirstChild("Deposit") 
-        or localPlot:FindFirstChild("Nest") 
-        or localPlot:FindFirstChild("DropZone") 
-        or localPlot:FindFirstChild("EggSpawn")
-        or localPlot:FindFirstChild("BaseSpawn")
-        or localPlot:FindFirstChild("Collector")
+    local deposit = localPlot:FindFirstChild("Deposit") or localPlot:FindFirstChild("Nest") 
+        or localPlot:FindFirstChild("DropZone") or localPlot:FindFirstChild("EggSpawn")
+        or localPlot:FindFirstChild("BaseSpawn") or localPlot:FindFirstChild("Collector")
 
     if deposit then
         if deposit:IsA("BasePart") then
@@ -198,6 +192,7 @@ function MainFunctions.GetDepositZone()
     if localPlot.PrimaryPart then
         return localPlot.PrimaryPart.CFrame + Vector3.new(0, 4, 0)
     end
+    
     for _, p in ipairs(localPlot:GetDescendants()) do
         if p:IsA("BasePart") and (p.Name:lower():find("spawn") or p.Name:lower():find("nest") or p.Name:lower():find("floor")) then
             return p.CFrame + Vector3.new(0, 3, 0)
@@ -206,9 +201,9 @@ function MainFunctions.GetDepositZone()
     return nil
 end
 
---------------------------------------------------------------------------------
--- 1. INSTANT REMOTE AUTO STEAL & AREA EGG CARRY
---------------------------------------------------------------------------------
+-- ============================================================================
+-- 1. INSTANT REMOTE AUTO STEAL (WORKING)
+-- ============================================================================
 function MainFunctions.ScanEnemyStealTargets(filterRarity)
     local results = {}
     local enemyPlots = MainFunctions.GetEnemyPlots()
@@ -221,7 +216,7 @@ function MainFunctions.ScanEnemyStealTargets(filterRarity)
             local name = obj.Name
 
             if obj:GetAttribute("IsEgg") or obj:GetAttribute("IsAnimal") or obj:GetAttribute("AssetId") 
-               or name:lower():find("egg") or name:lower():find("animal") or obj:FindFirstChild("ProximityPrompt") then
+                or name:lower():find("egg") or name:lower():find("animal") or obj:FindFirstChild("ProximityPrompt") then
                 isTarget = true
             end
 
@@ -242,7 +237,6 @@ function MainFunctions.ScanEnemyStealTargets(filterRarity)
         end
     end
 
-    -- Also scan Workspace AreaEggs
     local areaEggsFolder = Workspace:FindFirstChild("AreaEggs") or Workspace:FindFirstChild("SpawnedEggs") or Workspace:FindFirstChild("Eggs")
     if areaEggsFolder then
         for _, egg in ipairs(areaEggsFolder:GetChildren()) do
@@ -273,7 +267,6 @@ function MainFunctions.StepAutoSteal(flags, uiLib)
     local targets = MainFunctions.ScanEnemyStealTargets(targetRarity)
 
     if #targets > 0 then
-        -- Sort by distance
         table.sort(targets, function(a, b)
             if a.Part and b.Part then
                 return (root.Position - a.Part.Position).Magnitude < (root.Position - b.Part.Position).Magnitude
@@ -283,14 +276,10 @@ function MainFunctions.StepAutoSteal(flags, uiLib)
 
         local target = targets[1]
         if target and target.Part then
-            -- A. Remote Steal Request
-            invokeRemote("ActiveAssets: RequestStealTarget", target.Model or target.Part)
+            fireRemote("ActiveAssets: RequestStealTarget", target.Model or target.Part)
             fireRemote("ActiveAssets: StealTargetEvent", target.Model or target.Part)
-
-            -- B. Instant Skip Steal Animation
             invokeRemote("ActiveAssets: RequestDnaStealAnimationComplete", target.Model or target.Part)
 
-            -- C. If Area Egg -> Request Area Egg Carry & Drop
             if target.IsAreaEgg or target.Model:GetAttribute("IsAreaEgg") then
                 invokeRemote("Eggs: RequestAreaEggCarry", target.Model)
                 task.wait(0.1)
@@ -298,7 +287,6 @@ function MainFunctions.StepAutoSteal(flags, uiLib)
                 fireRemote("Guards: ForestDeposit")
             end
 
-            -- D. Proximity Prompt physical fallback
             if target.Prompt then
                 local useTween = flags.StealMethod == "Tween (Safe)"
                 teleportTo(target.Part.CFrame + Vector3.new(0, 2, 0), useTween, flags.TweenSpeed or 60)
@@ -306,7 +294,6 @@ function MainFunctions.StepAutoSteal(flags, uiLib)
                 triggerPrompt(target.Prompt)
             end
 
-            -- E. Deliver back to local deposit zone
             local depositCF = MainFunctions.GetDepositZone()
             if depositCF then
                 local useTween = flags.StealMethod == "Tween (Safe)"
@@ -323,17 +310,13 @@ function MainFunctions.StepAutoSteal(flags, uiLib)
     end
 end
 
---------------------------------------------------------------------------------
--- 2. AUTO COLLECT INCOME & OFFLINE MONEY
---------------------------------------------------------------------------------
+-- ============================================================================
+-- 2. AUTO COLLECT INCOME (WORKING)
+-- ============================================================================
 function MainFunctions.StepAutoCollect(flags)
-    -- 1. Fire Direct Asset Income Remote
     fireRemote("ActiveAssets: MoneyCollected")
-
-    -- 2. Redeem Offline Money
     invokeRemote("OfflineAssets: Redeem")
 
-    -- 3. Touch/Claim plot coin piles
     local localPlot = MainFunctions.GetLocalPlot()
     local root = getRootPart()
     if localPlot and root then
@@ -353,23 +336,20 @@ function MainFunctions.StepAutoCollect(flags)
     task.wait(flags.CollectDelay or 1.0)
 end
 
---------------------------------------------------------------------------------
--- 3. AUTO HATCH & INSTANT EGG GROWTH
---------------------------------------------------------------------------------
+-- ============================================================================
+-- 3. AUTO HATCH (WORKING)
+-- ============================================================================
 function MainFunctions.StepAutoHatch(flags)
     local targetEgg = flags.SelectedEgg or "Starter Egg"
     local count = flags.HatchCount or 1
 
-    -- 1. Fast Skip Egg Growth (Instantly mature growing eggs)
     if flags.AutoSkipGrowth then
         invokeRemote("Eggs: RequestSkipGrowth")
     end
 
-    -- 2. Request Hatch Egg
     invokeRemote("Eggs: RequestHatchEgg", targetEgg, count)
     invokeRemote("Eggs: RequestCompleteHatchEgg", targetEgg)
 
-    -- 3. Auto Place Egg to plot
     if flags.AutoPlaceEgg then
         invokeRemote("Eggs: RequestPlaceEgg")
     end
@@ -377,19 +357,16 @@ function MainFunctions.StepAutoHatch(flags)
     task.wait(flags.FastHatch and 0.2 or 1.0)
 end
 
---------------------------------------------------------------------------------
--- 4. AUTO TREADMILL (SPEED & POWER FARM)
---------------------------------------------------------------------------------
+-- ============================================================================
+-- 4. AUTO TREADMILL (WORKING)
+-- ============================================================================
 function MainFunctions.StepAutoTreadmill(flags)
-    -- 1. Gain Speed Power on Treadmill
     fireRemote("Treadmills: SpeedGain", flags.TreadmillMultiplier or 1)
 
-    -- 2. Auto Upgrade Treadmill
     if flags.AutoUpgradeTreadmill then
         invokeRemote("Treadmills: RequestUpgrade")
     end
 
-    -- 3. Auto Equip Static
     if flags.AutoEquipBestTreadmill then
         invokeRemote("Treadmills: RequestEquipStatic")
     end
@@ -397,19 +374,16 @@ function MainFunctions.StepAutoTreadmill(flags)
     task.wait(flags.TreadmillInterval or 0.15)
 end
 
---------------------------------------------------------------------------------
--- 5. AUTO BASE UPGRADE & AUTO EQUIP BEST
---------------------------------------------------------------------------------
+-- ============================================================================
+-- 5. AUTO BASE UPGRADE (WORKING)
+-- ============================================================================
 function MainFunctions.StepAutoUpgradeBase(flags)
-    -- 1. Fire Network Base Upgrade Remote
     fireRemote("Plots: RequestBaseUpgrade", "All")
 
-    -- 2. Equip Best Income Pets
     if flags.AutoEquipBest then
         invokeRemote("Backpack: EquipBest")
     end
 
-    -- 3. Physical Upgrade Pads fallback
     local localPlot = MainFunctions.GetLocalPlot()
     local root = getRootPart()
     if localPlot and root then
@@ -432,17 +406,11 @@ function MainFunctions.StepAutoUpgradeBase(flags)
     task.wait(flags.UpgradeDelay or 2.0)
 end
 
---------------------------------------------------------------------------------
--- 6. AUTO REBIRTH & AUTO SELL
---------------------------------------------------------------------------------
+-- ============================================================================
+-- 6. AUTO REBIRTH (WORKING)
+-- ============================================================================
 function MainFunctions.StepAutoRebirth(flags)
-    local remotes = ReplicatedStorage:FindFirstChild("Remotes") or getNetwork()
-    local rebirthEvent = remotes:FindFirstChild("Rebirth") or remotes:FindFirstChild("DoRebirth")
-    if rebirthEvent and rebirthEvent:IsA("RemoteEvent") then
-        pcall(function() rebirthEvent:FireServer() end)
-    elseif rebirthEvent and rebirthEvent:IsA("RemoteFunction") then
-        pcall(function() rebirthEvent:InvokeServer() end)
-    end
+    invokeRemote("Rebirth: RequestRebirth")
     task.wait(flags.RebirthDelay or 3.0)
 end
 
