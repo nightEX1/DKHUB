@@ -346,19 +346,19 @@ local UILibrary = (function()
         -- Floating Minimize Icon (DRAGABLE)
         local floatIcon = Instance.new("Frame")
         floatIcon.Name = "FloatIcon"
-        floatIcon.Size = UDim2.new(0, 55, 0, 55)
-        floatIcon.Position = UDim2.new(0, 15, 0.5, -27)
+        floatIcon.Size = UDim2.new(0, 72, 0, 72)
+        floatIcon.Position = UDim2.new(0, 18, 0.5, -36)
         floatIcon.BackgroundColor3 = UILibrary.Theme.Primary
         floatIcon.BorderSizePixel = 0
         floatIcon.Parent = gui
 
         local floatCorner = Instance.new("UICorner")
-        floatCorner.CornerRadius = UDim.new(0, 10)
+        floatCorner.CornerRadius = UDim.new(0, 18)
         floatCorner.Parent = floatIcon
 
         local floatStroke = Instance.new("UIStroke")
-        floatStroke.Color = Color3.new(1, 1, 1)
-        floatStroke.Thickness = 2
+        floatStroke.Color = UILibrary.Theme.Accent
+        floatStroke.Thickness = 3
         floatStroke.Parent = floatIcon
 
         -- Icon Text
@@ -366,10 +366,21 @@ local UILibrary = (function()
         iconText.Size = UDim2.new(1, 0, 1, 0)
         iconText.BackgroundTransparency = 1
         iconText.Font = UILibrary.Theme.FontBold
-        iconText.Text = "🔴"
+        iconText.Text = "DK"
         iconText.TextColor3 = Color3.new(1, 1, 1)
-        iconText.TextSize = 24
+        iconText.TextSize = 22
         iconText.Parent = floatIcon
+        local iconHint = Instance.new("TextLabel")
+        iconHint.Name = "ToggleHint"
+        iconHint.AnchorPoint = Vector2.new(0.5, 0)
+        iconHint.Position = UDim2.new(0.5, 0, 1, 4)
+        iconHint.Size = UDim2.new(0, 110, 0, 18)
+        iconHint.BackgroundTransparency = 1
+        iconHint.Font = UILibrary.Theme.FontBold
+        iconHint.Text = "DKHUB  •  MENU"
+        iconHint.TextColor3 = UILibrary.Theme.Primary
+        iconHint.TextSize = 9
+        iconHint.Parent = floatIcon
 
         -- Float Icon Drag
         local fDragging = false
