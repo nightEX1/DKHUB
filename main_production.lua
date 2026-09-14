@@ -1,26 +1,18 @@
 --[[
-    DKHUB - Steal An Egg Hub (PRODUCTION v2 - FULL BYPASS)
-    Complete Anti-Cheat Bypass + Stealth Mode + Premium UI
+    DKHUB - UI ONLY
+    Profile / Main / Webhook / Settings
     Red & Dark Theme with Smooth Animations
-    Drag Icon + Toggle System + UI Modules
+    No automation, remotes, teleport, or bypass code
 ]]
-
-if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local HttpService = game:GetService("HttpService")
-local TeleportService = game:GetService("TeleportService")
-local VirtualUser = game:GetService("VirtualUser")
 
 -- ============================================================================
--- UI-ONLY BUILD: bypass code removed.
+-- UI-ONLY BUILD: gameplay and bypass code removed.
 -- ============================================================================
 -- PREMIUM UI LIBRARY - RED & DARK THEME
 -- ============================================================================
