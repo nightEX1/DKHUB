@@ -20,76 +20,8 @@ local TeleportService = game:GetService("TeleportService")
 local VirtualUser = game:GetService("VirtualUser")
 
 -- ============================================================================
--- ANTI-CHEAT BYPASS SYSTEM
+-- UI-ONLY BUILD: bypass code removed.
 -- ============================================================================
-local AntiCheat = {}
-
-function AntiCheat.Init()
-    local gEnv = (typeof(getgenv) == "function" and getgenv()) or _G
-    if gEnv._DHKUBBypassActive then return end
-    gEnv._DHKUBBypassActive = true
-
-    -- Block detection remotes
-    local BlockedRemotes = {
-        ["ClientCharacter: IntegrityViolation"] = true,
-        ["ClientCharacter: IntegrityHeartbeat"] = true,
-        ["ClientCharacter: CorrectionStarted"] = true,
-        ["Analytics:ReportAfkState"] = true,
-    }
-
-    local function isBlocked(name)
-        if not name then return false end
-        if BlockedRemotes[name] then return true end
-        local lower = name:lower()
-        return lower:find("integrity") or lower:find("violation") or lower:find("anticheat")
-    end
-
-    -- Hook LocalPlayer.Kick
-    pcall(function()
-        if typeof(hookfunction) == "function" then
-            local oldKick
-            oldKick = hookfunction(LocalPlayer.Kick, newcclosure(function(self, ...)
-                if self == LocalPlayer then
-                    warn("[DKHUB Shield]: Blocked Kick")
-                    return nil
-                end
-                return oldKick(self, ...)
-            end))
-        end
-    end)
-
-    -- Hook __namecall for remote filtering
-    pcall(function()
-        if typeof(hookmetamethod) == "function" then
-            local oldNamecall
-            oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-                local method = getnamecallmethod()
-                
-                if (method == "Kick" or method == "kick") and self == LocalPlayer then
-                    return nil
-                end
-                
-                if (method == "FireServer" or method == "InvokeServer") then
-                    local name = self.Name
-                    if isBlocked(name) then
-                        return nil
-                    end
-                end
-                
-                return oldNamecall(self, ...)
-            end))
-        end
-    end)
-
-    print("[DKHUB]: Anti-Cheat Shield Activated ✓")
-end
-
--- AntiCheat.Init() intentionally disabled for UI-only startup.
-
--- ============================================================================
-
--- AntiCheat.Init() intentionally disabled for UI-only startup.
-
 -- PREMIUM UI LIBRARY - RED & DARK THEME
 -- ============================================================================
 local UILibrary = (function()
@@ -691,6 +623,55 @@ local UILibrary = (function()
                 end)
             end
 
+            function tabObj:AddInput(id, options)
+                options = options or {}
+                local card = Instance.new("Frame")
+                card.Size = UDim2.new(1, 0, 0, 58)
+                card.BackgroundColor3 = UILibrary.Theme.Surface
+                card.Parent = container
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(0, 8)
+                corner.Parent = card
+                local stroke = Instance.new("UIStroke")
+                stroke.Color = UILibrary.Theme.Primary
+                stroke.Transparency = 0.28
+                stroke.Thickness = 2
+                stroke.Parent = card
+                local label = Instance.new("TextLabel")
+                label.Size = UDim2.new(0.34, 0, 1, 0)
+                label.Position = UDim2.new(0, 12, 0, 0)
+                label.BackgroundTransparency = 1
+                label.Font = UILibrary.Theme.FontBold
+                label.Text = options.Title or "Input"
+                label.TextColor3 = UILibrary.Theme.Text
+                label.TextSize = 11
+                label.TextXAlignment = Enum.TextXAlignment.Left
+                label.Parent = card
+                local box = Instance.new("TextBox")
+                box.Size = UDim2.new(0.58, 0, 0, 32)
+                box.Position = UDim2.new(0.38, 0, 0.5, -16)
+                box.BackgroundColor3 = UILibrary.Theme.Background
+                box.BorderSizePixel = 0
+                box.ClearTextOnFocus = false
+                box.Font = UILibrary.Theme.Font
+                box.PlaceholderText = options.Placeholder or "Enter value..."
+                box.Text = options.Default or ""
+                box.TextColor3 = UILibrary.Theme.Text
+                box.PlaceholderColor3 = UILibrary.Theme.TextMuted
+                box.TextSize = 11
+                box.TextXAlignment = Enum.TextXAlignment.Left
+                box.Parent = card
+                local boxCorner = Instance.new("UICorner")
+                boxCorner.CornerRadius = UDim.new(0, 6)
+                boxCorner.Parent = box
+                local inputObj = {Value = box.Text, TextBox = box}
+                box.FocusLost:Connect(function()
+                    inputObj.Value = box.Text
+                    if options.Callback then pcall(options.Callback, box.Text) end
+                end)
+                return inputObj
+            end
+
             function tabObj:AddSlider(id, options)
                 options = options or {}
                 local minVal, maxVal = options.Min or 0, options.Max or 100
@@ -863,145 +844,66 @@ end
 -- ============================================================================
 -- CREATE MAIN WINDOW
 -- ============================================================================
-local Window = UILibrary:CreateWindow({
-    Title = "🔴 DKHUB - Steal An Egg Hub v2 🔴"
-})
+local Window = UILibrary:CreateWindow({Title = "DKHUB"})
 
--- Main Tab
-local MainTab = Window:AddTab({Title = "Main"})
-
-MainTab:AddSection("AUTO FARMING")
-local AutoStealToggle = MainTab:AddToggle("AutoSteal", {
-    Title = "🎯 Auto Steal Eggs",
-    Description = "Steal eggs from other players",
-    Default = false,
-    Callback = function(val)
-        Automation.ToggleTask("AutoSteal", val, MainFunctions.StepAutoSteal)
-    end
-})
-
-local AutoCollectToggle = MainTab:AddToggle("AutoCollect", {
-    Title = "💰 Auto Collect Income",
-    Description = "Automatically collect coins",
-    Default = false,
-    Callback = function(val)
-        Automation.ToggleTask("AutoCollect", val, MainFunctions.StepAutoCollect)
-    end
-})
-
-MainTab:AddSection("AUTO HATCH")
-local AutoHatchToggle = MainTab:AddToggle("AutoHatch", {
-    Title = "🥚 Auto Hatch Eggs",
-    Description = "Hatch eggs automatically",
-    Default = false,
-    Callback = function(val)
-        Automation.ToggleTask("AutoHatch", val, MainFunctions.StepAutoHatch)
-    end
-})
-
-local EggDropdown = MainTab:AddDropdown("EggType", {
-    Title = "Select Egg Type",
-    Values = MainFunctions.KnownEggTypes,
-    Default = "Starter Egg"
-})
-
-MainTab:AddSection("AUTO UPGRADE")
-local AutoTreadmillToggle = MainTab:AddToggle("AutoTreadmill", {
-    Title = "⚡ Auto Treadmill Farm",
-    Description = "Farm speed power",
-    Default = false,
-    Callback = function(val)
-        Automation.ToggleTask("AutoTreadmill", val, MainFunctions.StepAutoTreadmill)
-    end
-})
-
-local AutoUpgradeToggle = MainTab:AddToggle("AutoUpgradeBase", {
-    Title = "🏗️ Auto Upgrade Base",
-    Description = "Upgrade base automatically",
-    Default = false,
-    Callback = function(val)
-        Automation.ToggleTask("AutoUpgradeBase", val, MainFunctions.StepAutoUpgradeBase)
-    end
-})
-
--- Misc Tab
-local MiscTab = Window:AddTab({Title = "Misc"})
-
-MiscTab:AddSection("UTILITIES")
-MiscTab:AddButton({
-    Title = "✨ Claim All Rewards",
-    Callback = function()
-        UILibrary:Notify({Title = "Success", Content = "All rewards claimed!", Duration = 3})
-    end
-})
-
-MiscTab:AddButton({
-    Title = "🏠 Teleport to Base",
-    Callback = function()
-        UILibrary:Notify({Title = "Teleport", Content = "Teleported to base!", Duration = 3})
-    end
-})
-
-MiscTab:AddButton({
-    Title = "🛒 Teleport to Shop",
-    Callback = function()
-        UILibrary:Notify({Title = "Teleport", Content = "Teleported to shop!", Duration = 3})
-    end
-})
-
-MiscTab:AddSection("SERVER")
-MiscTab:AddButton({
-    Title = "🔄 Rejoin Server",
-    Callback = function()
-        UILibrary:Notify({Title = "Rejoining", Content = "Reconnecting...", Duration = 3})
-    end
-})
-
-MiscTab:AddButton({
-    Title = "🌐 Server Hop",
-    Callback = function()
-        UILibrary:Notify({Title = "Server Hop", Content = "Finding new server...", Duration = 3})
-    end
-})
-
--- Settings Tab
-local SettingsTab = Window:AddTab({Title = "Settings"})
-
-SettingsTab:AddSection("SCRIPT INFO")
-SettingsTab:AddButton({
-    Title = "❌ Unload Script",
-    Callback = function()
-        Automation.Running = false
-        UILibrary:Notify({Title = "DKHUB", Content = "Script unloaded successfully!", Duration = 2})
+local ProfileTab = Window:AddTab({Title = "Profile"})
+ProfileTab:AddSection("PROFILE")
+local profileName = ProfileTab:AddInput("ProfileName", {Title = "Name", Placeholder = "Your display name", Default = LocalPlayer and LocalPlayer.DisplayName or "Player"})
+local profileInfo = Instance.new("TextLabel")
+profileInfo.Size = UDim2.new(1, 0, 0, 86)
+profileInfo.BackgroundColor3 = UILibrary.Theme.Surface
+profileInfo.Font = UILibrary.Theme.Font
+profileInfo.TextColor3 = UILibrary.Theme.Text
+profileInfo.TextSize = 12
+profileInfo.TextWrapped = true
+profileInfo.TextXAlignment = Enum.TextXAlignment.Left
+profileInfo.Parent = ProfileTab.Container
+local profileCorner = Instance.new("UICorner")
+profileCorner.CornerRadius = UDim.new(0, 8)
+profileCorner.Parent = profileInfo
+local startedAt = os.clock()
+local startedClock = os.date("%H:%M:%S")
+task.spawn(function()
+    while Window.Gui and Window.Gui.Parent do
+        local elapsed = math.max(0, math.floor(os.clock() - startedAt))
+        profileInfo.Text = string.format("  Name: %s\n  Started: %s\n  Runtime: %02d:%02d:%02d\n  Real time: %s", profileName.Value, startedClock, math.floor(elapsed / 3600), math.floor((elapsed % 3600) / 60), elapsed % 60, os.date("%Y-%m-%d %H:%M:%S"))
         task.wait(1)
-        Window.Gui:Destroy()
     end
-})
+end)
 
-SettingsTab:AddSection("INFO")
+local MainTab = Window:AddTab({Title = "Main"})
+MainTab:AddSection("MAIN FUNCTIONS")
+MainTab:AddButton({Title = "Main functions coming soon", Callback = function() UILibrary:Notify({Title = "Main", Content = "This section is ready for your next modules.", Duration = 3}) end})
+MainTab:AddButton({Title = "UI test notification", Callback = function() UILibrary:Notify({Title = "DKHUB", Content = "UI is connected and working.", Duration = 3}) end})
+
+local WebhookTab = Window:AddTab({Title = "Webhook"})
+WebhookTab:AddSection("WEBHOOK SETTINGS")
+local webhookUrl = ""
+local webhookInput = WebhookTab:AddInput("WebhookUrl", {Title = "Webhook URL", Placeholder = "https://discord.com/api/webhooks/...", Callback = function(value) webhookUrl = value end})
+WebhookTab:AddButton({Title = "Test / Save Webhook URL", Callback = function()
+    webhookUrl = webhookInput.TextBox.Text
+    UILibrary:Notify({Title = "Webhook", Content = webhookUrl:match("^https://") and "URL saved locally." or "Please enter a valid HTTPS URL.", Duration = 3})
+end})
+WebhookTab:AddButton({Title = "Clear Webhook URL", Callback = function() webhookUrl = ""; webhookInput.TextBox.Text = ""; UILibrary:Notify({Title = "Webhook", Content = "URL cleared.", Duration = 2}) end})
+
+local SettingsTab = Window:AddTab({Title = "Settings"})
+SettingsTab:AddSection("SETTINGS")
+SettingsTab:AddToggle("CompactMode", {Title = "Compact mode", Description = "Keep the menu smaller to show more of the game.", Default = true})
+SettingsTab:AddToggle("Animations", {Title = "UI animations", Description = "Enable smooth transitions and feedback.", Default = true})
+SettingsTab:AddButton({Title = "Unload UI", Callback = function() Automation.Running = false; if Window.Gui then Window.Gui:Destroy() end end})
 local info = Instance.new("TextLabel")
-info.Size = UDim2.new(1, 0, 0, 60)
+info.Size = UDim2.new(1, 0, 0, 58)
 info.BackgroundColor3 = UILibrary.Theme.Surface
 info.Font = UILibrary.Theme.Font
-info.Text = "DKHUB v2 - Premium Cheat\nAnti-Cheat Bypass Enabled\nAll Features Working"
+info.Text = "  DKHUB\n  UI modules: Profile / Main / Webhook / Settings"
 info.TextColor3 = UILibrary.Theme.Text
 info.TextSize = 11
-info.TextWrapped = true
+info.TextXAlignment = Enum.TextXAlignment.Left
 info.Parent = SettingsTab.Container
-
 local infoCorner = Instance.new("UICorner")
 infoCorner.CornerRadius = UDim.new(0, 8)
 infoCorner.Parent = info
 
 Window:SelectTab(1)
-
-UILibrary:Notify({
-    Title = "DKHUB v2 Loaded",
-    Content = "✓ Anti-Cheat Bypass Active\n✓ All Systems Ready\n✓ Premium UI Enabled",
-    Duration = 5
-})
-
-print("[DKHUB v2] ✓ Production script loaded successfully!")
-print("[DKHUB v2] ✓ Red & Dark Theme activated")
-print("[DKHUB v2] ✓ Smooth animations enabled")
-print("[DKHUB v2] ✓ Drag & toggle system ready")
+UILibrary:Notify({Title = "DKHUB", Content = "Profile, Main, Webhook and Settings loaded.", Duration = 4})
+print("[DKHUB] UI modules loaded successfully")
