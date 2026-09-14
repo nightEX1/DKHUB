@@ -93,14 +93,14 @@ local UILibrary = (function()
     local UILibrary = {}
     
     UILibrary.Theme = {
-        Primary = Color3.fromRGB(220, 20, 60),      -- Crimson Red
-        PrimaryDark = Color3.fromRGB(139, 0, 0),    -- Dark Red
-        Background = Color3.fromRGB(20, 20, 25),    -- Almost Black
-        Surface = Color3.fromRGB(30, 30, 40),       -- Dark Grey
-        SurfaceLight = Color3.fromRGB(45, 45, 55),  -- Lighter Grey
+        Primary = Color3.fromRGB(235, 35, 58),      -- Crimson Red
+        PrimaryDark = Color3.fromRGB(55, 7, 15),    -- Dark Red
+        Background = Color3.fromRGB(7, 7, 11),    -- Almost Black
+        Surface = Color3.fromRGB(15, 13, 20),       -- Dark Grey
+        SurfaceLight = Color3.fromRGB(31, 18, 25),  -- Lighter Grey
         Text = Color3.fromRGB(255, 255, 255),       -- White
-        TextMuted = Color3.fromRGB(150, 150, 150),  -- Grey
-        Accent = Color3.fromRGB(220, 20, 60),       -- Red Accent
+        TextMuted = Color3.fromRGB(176, 158, 165),  -- Grey
+        Accent = Color3.fromRGB(255, 70, 84),       -- Red Accent
         Success = Color3.fromRGB(34, 197, 94),      -- Green
         Font = Enum.Font.GothamMedium,
         FontBold = Enum.Font.GothamBold
@@ -220,7 +220,7 @@ local UILibrary = (function()
         local header = Instance.new("Frame")
         header.Name = "Header"
         header.Size = UDim2.new(1, 0, 0, 50)
-        header.BackgroundColor3 = UILibrary.Theme.PrimaryDark
+        header.BackgroundColor3 = UILibrary.Theme.Background
         header.BorderSizePixel = 0
         header.Parent = mainFrame
 
@@ -497,8 +497,8 @@ local UILibrary = (function()
 
                 local cardStroke = Instance.new("UIStroke")
                 cardStroke.Color = UILibrary.Theme.Primary
-                cardStroke.Transparency = 0.7
-                cardStroke.Thickness = 1.5
+                cardStroke.Transparency = 0.28
+                cardStroke.Thickness = 2
                 cardStroke.Parent = card
 
                 local titleLbl = Instance.new("TextLabel")
