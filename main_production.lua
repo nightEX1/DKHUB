@@ -201,11 +201,85 @@ local UILibrary = (function()
         gui.DisplayOrder = 999999
         gui.Parent = container
 
+        -- DKHUB startup splash: large pulsing mark + smooth 0-100% progress.
+        local splash = Instance.new("Frame")
+        splash.Name = "DKHUB_Loading"
+        splash.Size = UDim2.fromScale(1, 1)
+        splash.BackgroundColor3 = UILibrary.Theme.Background
+        splash.BorderSizePixel = 0
+        splash.ZIndex = 100
+        splash.Parent = gui
+        local splashMark = Instance.new("TextLabel")
+        splashMark.AnchorPoint = Vector2.new(0.5, 0.5)
+        splashMark.Position = UDim2.fromScale(0.5, 0.42)
+        splashMark.Size = UDim2.fromOffset(190, 120)
+        splashMark.BackgroundTransparency = 1
+        splashMark.Font = UILibrary.Theme.FontBold
+        splashMark.Text = "DK"
+        splashMark.TextColor3 = UILibrary.Theme.Primary
+        splashMark.TextStrokeColor3 = UILibrary.Theme.Accent
+        splashMark.TextStrokeTransparency = 0.15
+        splashMark.TextSize = 82
+        splashMark.ZIndex = 102
+        splashMark.Parent = splash
+        local splashSub = Instance.new("TextLabel")
+        splashSub.AnchorPoint = Vector2.new(0.5, 0)
+        splashSub.Position = UDim2.fromScale(0.5, 0.53)
+        splashSub.Size = UDim2.fromOffset(260, 24)
+        splashSub.BackgroundTransparency = 1
+        splashSub.Font = UILibrary.Theme.FontBold
+        splashSub.Text = "DKHUB  /  LOADING"
+        splashSub.TextColor3 = UILibrary.Theme.TextMuted
+        splashSub.TextSize = 11
+        splashSub.ZIndex = 102
+        splashSub.Parent = splash
+        local loadTrack = Instance.new("Frame")
+        loadTrack.AnchorPoint = Vector2.new(0.5, 0)
+        loadTrack.Position = UDim2.fromScale(0.5, 0.62)
+        loadTrack.Size = UDim2.fromOffset(270, 8)
+        loadTrack.BackgroundColor3 = UILibrary.Theme.Surface
+        loadTrack.BorderSizePixel = 0
+        loadTrack.ZIndex = 102
+        loadTrack.Parent = splash
+        local loadTrackCorner = Instance.new("UICorner")
+        loadTrackCorner.CornerRadius = UDim.new(1, 0)
+        loadTrackCorner.Parent = loadTrack
+        local loadFill = Instance.new("Frame")
+        loadFill.Size = UDim2.new(0, 0, 1, 0)
+        loadFill.BackgroundColor3 = UILibrary.Theme.Primary
+        loadFill.BorderSizePixel = 0
+        loadFill.ZIndex = 103
+        loadFill.Parent = loadTrack
+        local loadFillCorner = Instance.new("UICorner")
+        loadFillCorner.CornerRadius = UDim.new(1, 0)
+        loadFillCorner.Parent = loadFill
+        local loadPercent = Instance.new("TextLabel")
+        loadPercent.AnchorPoint = Vector2.new(0.5, 0)
+        loadPercent.Position = UDim2.fromScale(0.5, 0.65)
+        loadPercent.Size = UDim2.fromOffset(100, 22)
+        loadPercent.BackgroundTransparency = 1
+        loadPercent.Font = UILibrary.Theme.FontBold
+        loadPercent.Text = "0%"
+        loadPercent.TextColor3 = UILibrary.Theme.Primary
+        loadPercent.TextSize = 12
+        loadPercent.ZIndex = 102
+        loadPercent.Parent = splash
+        task.spawn(function()
+            for percent = 0, 100 do
+                loadFill:TweenSize(UDim2.new(percent / 100, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.018, true)
+                loadPercent.Text = tostring(percent) .. "%"
+                splashMark.TextTransparency = (percent % 12 < 6) and 0.05 or 0.22
+                task.wait(0.018)
+            end
+            task.wait(0.25)
+            splash:Destroy()
+        end)
+
         -- Main Window
         local mainFrame = Instance.new("Frame")
         mainFrame.Name = "MainFrame"
-        mainFrame.Size = UDim2.new(0, 650, 0, 500)
-        mainFrame.Position = UDim2.new(0.5, -325, 0.5, -250)
+        mainFrame.Size = UDim2.new(0, 520, 0, 390)
+        mainFrame.Position = UDim2.new(0.5, -260, 0.5, -195)
         mainFrame.BackgroundColor3 = UILibrary.Theme.Background
         mainFrame.BorderSizePixel = 0
         mainFrame.Parent = gui
@@ -385,36 +459,33 @@ local UILibrary = (function()
         iconHint.TextSize = 9
         iconHint.Parent = floatIcon
 
-        -- Float Icon Drag
+        -- Float Icon Drag + click toggle (dragging will not toggle the menu).
         local fDragging = false
+        local fMoved = false
         local fDragStart = nil
         local fStartPos = nil
-
         floatIcon.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 fDragging = true
+                fMoved = false
                 fDragStart = input.Position
                 fStartPos = floatIcon.Position
             end
         end)
-
         UserInputService.InputChanged:Connect(function(input)
-            if fDragging and fDragStart then
+            if fDragging and fDragStart and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                 local delta = input.Position - fDragStart
+                if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then fMoved = true end
                 floatIcon.Position = UDim2.new(fStartPos.X.Scale, fStartPos.X.Offset + delta.X, fStartPos.Y.Scale, fStartPos.Y.Offset + delta.Y)
             end
         end)
-
         UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                if fDragging and not fMoved then
+                    mainFrame.Visible = not mainFrame.Visible
+                    TweenService:Create(floatIcon, TweenInfo.new(0.2), {BackgroundColor3 = mainFrame.Visible and UILibrary.Theme.Primary or UILibrary.Theme.PrimaryDark}):Play()
+                end
                 fDragging = false
-            end
-        end)
-
-        floatIcon.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                mainFrame.Visible = not mainFrame.Visible
-                TweenService:Create(floatIcon, TweenInfo.new(0.2), {BackgroundColor3 = mainFrame.Visible and UILibrary.Theme.Primary or UILibrary.Theme.PrimaryDark}):Play()
             end
         end)
 
