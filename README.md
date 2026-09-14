@@ -1,58 +1,69 @@
-# Termux Lua GitHub Bot
+# Steal An Egg - DKHUB Script Hub 🥚✨
 
-ต้นแบบนี้รับคำสั่งจาก Termux แล้วสร้างไฟล์ Lua ใน `scripts/generated/` จากนั้นให้ผู้ใช้ยืนยันก่อน commit/push เข้า GitHub
+A bespoke, high-performance script hub for **Roblox: Steal a Egg** ([Game Link](https://www.roblox.com/games/108053424714724/Steal-a-Egg)). Built using the signature **DKHUB Cosmic Obsidian** UI library (`#A855F7`) and integrated directly with the game's **Network Remote Architecture** for ultra-fast, ban-safe automation.
 
-## ทดลองแบบไม่ใช้ API ก่อน
+---
 
+## 🌟 Fitur Unggulan (Remote-Integrated)
+
+### 🎯 1. Tab Main
+- **⚡ Super Auto Steal**:
+  - Direct Remote Steal via `ActiveAssets: RequestStealTarget` & `StealTargetEvent`.
+  - **Instant Skip Steal Animation**: Memotong jeda animasi steal via `ActiveAssets: RequestDnaStealAnimationComplete`.
+  - **Area Egg Carry & Drop**: Otomatis membawa dan mendeposit telur area via `Eggs: RequestAreaEggCarry` & `Guards: ForestDeposit`.
+  - **14 Rarity Tiers**: `All`, `BrainrotGod`, `Secret`, `Divine`, `Cosmic`, `Eternal`, `Mythic`, `Legendary`, `Epic`, `Rare`, `Superior`, `Uncommon`, `Common`, `Basic`.
+  - **Movement Modes**: `Instant TP` atau `Tween (Safe)`.
+- **💰 Auto Collect & Cash Flow**:
+  - Auto Claim Animal & Plot Income via `ActiveAssets: MoneyCollected`.
+  - Auto Redeem Offline Vault Money via `OfflineAssets: Redeem`.
+  - Tombol **"Sell All Non-Favorite Assets Now"** via `AssetInventory: SellAllAssets`.
+- **🐣 Auto Hatch & Fast Egg Growth**:
+  - Auto Hatch pilihan telur via `Eggs: RequestHatchEgg` & `RequestCompleteHatchEgg`.
+  - **Auto Skip Growth Time (Instant Ready)** via `Eggs: RequestSkipGrowth`.
+  - **Auto Place Eggs to Plot** via `Eggs: RequestPlaceEgg`.
+  - **Fast Hatch Mode**: Skip animasi cutscene.
+- **🏃 Auto Treadmill (Speed & Power Farm)**:
+  - Auto Farm Speed via `Treadmills: SpeedGain`.
+  - Auto Upgrade Treadmill Level via `Treadmills: RequestUpgrade`.
+  - Auto Equip Best Treadmill via `Treadmills: RequestEquipStatic`.
+- **🏰 Auto Base Upgrades & Pets**:
+  - Auto Upgrade Base Walls & Defenses via `Plots: RequestBaseUpgrade`.
+  - **Auto Equip Best Income Pets** via `Backpack: EquipBest`.
+- **🔄 Auto Rebirth**: Otomatis rebirth untuk melipatgandakan multiplier koin.
+
+---
+
+### 🛠️ 2. Tab Misc
+- **🎁 Rewards & Quest Auto-Claimer**:
+  - **Claim All Index Rewards**: Mengklaim semua hadiah uang & limited egg koleksi via `Index: RequestClaimAll` & `Index: RequestClaimLimitedEggReward`.
+  - **Claim Group Rewards**: `GroupReward: ClaimReward`.
+  - **Auto Complete Guard Tutorial**: Selesaikan quest pemain baru via `GuardTutorial: RequestSyncProgress`.
+- **⚔️ Combat & Slap Aura**:
+  - Auto Trigger Bats, Slaps, Medusa Head, Taser Gun pada musuh di sekitar via `Bat:Activate` & GearTools remotes.
+- **🏃 Player Enhancements**:
+  - Custom WalkSpeed (16 - 250) & JumpPower (50 - 300).
+  - Infinite Jump & Noclip (tembus tembok base musuh).
+- **👁️ Visuals & All-Rarity ESP**:
+  - Color-Coded Egg ESP untuk semua 14 tier rarity.
+  - Player ESP (Box highlight + Display Name + HP + Jarak).
+- **🚀 Teleports & Utilities**:
+  - Teleport ke Base sendiri, Base pemain lain (dropdown otomatis update), dan Shop/Spawn.
+  - Anti-AFK (20-Min Idle Bypass), Rejoin Server, Server Hop.
+  - Full Performance (FPS Booster) & Disable 3D Rendering (0% GPU).
+
+---
+
+### ⚙️ 3. Tab Settings
+- **Automatic Config Persistence**: Auto-save & reload ke `StealAnEgg_DKHUB_Config.json`.
+- **Shortcuts**: Keybind `RightControl` & Floating draggable mobile bubble.
+- **Master Clean Unloader**: Mematikan semua loop, coroutine, dan koneksi secara aman.
+
+---
+
+## 🚀 Cara Menjalankan
+
+Eksekusi file **[main.lua](file:///e:/Antigravity%20IDE/Steal%20an%20Egg%20-%20DKHUB/main.lua)** di executor Roblox kamu.
+Jika ingin mengubah isi modular file di `src/`, cukup jalankan:
 ```bash
-pkg install python git gh -y
-mkdir -p ~/lua-bot
-cd ~/lua-bot
-# นำไฟล์ bot.py นี้มาไว้ในโฟลเดอร์ repo ของคุณ
-python bot.py
+python bundle_main.py
 ```
-
-ถ้ายังไม่มี `OPENAI_API_KEY` โปรแกรมจะใช้ **โหมด Demo** และสร้างไฟล์ placeholder เพื่อทดสอบลำดับการทำงานโดยไม่เรียก AI
-
-## ใช้ AI จริง
-
-ตั้งค่าคีย์เฉพาะใน session ปัจจุบัน (อย่าใส่ลงไฟล์หรือ GitHub):
-
-```bash
-export OPENAI_API_KEY='ใส่คีย์ของคุณ'
-export OPENAI_API_BASE='https://api.openai.com/v1'
-export AI_MODEL='gpt-5-mini'
-python bot.py
-```
-
-ถ้าใช้ endpoint ที่เข้ากันได้กับ OpenAI ให้เปลี่ยน `OPENAI_API_BASE` ตามผู้ให้บริการนั้น
-
-## เชื่อม GitHub ของคุณ
-
-ในโฟลเดอร์ repository ของคุณ:
-
-```bash
-gh auth login
-gh auth status
-git remote -v
-python bot.py
-```
-
-บอทจะเขียนไฟล์, แสดงตัวอย่าง, แล้วถามยืนยัน โดยต้องพิมพ์ `YES` จึงจะ `git add`, `git commit`, `git push`
-
-## สร้าง repo ใหม่
-
-```bash
-mkdir -p ~/projects && cd ~/projects
-gh repo create ai-lua-bot --private --clone
-cd ai-lua-bot
-mkdir -p scripts/generated
-cp /path/to/bot.py .
-python bot.py
-```
-
-## ขอบเขตความปลอดภัย
-
-บอทนี้ตั้งใจให้สร้าง Lua สำหรับ Roblox Studio ที่ปลอดภัยเท่านั้น ไม่สร้าง exploit/cheat, ขโมย Token, ข้ามระบบความปลอดภัย หรือทำลายข้อมูล และจำกัดชื่อไฟล์ให้อยู่ใต้ `scripts/generated/`
-
-อย่าใส่ API key, GitHub token หรือข้อมูลลับลงใน repository หากต้องการ URL แบบ `raw.githubusercontent.com` ให้ repository และไฟล์นั้นเป็น Public; repository Private จะไม่เปิดให้ผู้ใช้ทั่วไปเรียก URL raw ได้
