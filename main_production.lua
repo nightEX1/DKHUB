@@ -1,8 +1,8 @@
 --[[
-    DKHUB - Steal An Egg Hub (PRODUCTION v3 - FULL BYPASS)
-    Complete 7-Layer Anti-Cheat Bypass + Stealth Mode + Premium UI
+    DKHUB - Steal An Egg Hub (PRODUCTION v4 - FULL BYPASS)
+    Complete Anti-Cheat Bypass + Stealth Mode + Premium UI
     Red & Dark Theme with Smooth Animations
-    Optimized for: loadstring(game:HttpGet("https://raw.githubusercontent.com/nightEX1/DKHUB/main/main_production.lua"))()
+    Fixed & Optimized for loadstring execution
 ]]
 
 if not game:IsLoaded() then game.Loaded:Wait() end
@@ -20,7 +20,7 @@ local TeleportService = game:GetService("TeleportService")
 local VirtualUser = game:GetService("VirtualUser")
 
 -- ============================================================================
--- 7-LAYER ANTI-CHEAT BYPASS SYSTEM v2
+-- ANTI-CHEAT BYPASS SYSTEM
 -- ============================================================================
 local AntiCheat = {}
 
@@ -36,19 +36,16 @@ function AntiCheat.Init()
         ["Analytics:ReportAfkState"] = true,
         ["Moderation:ReportCheater"] = true,
         ["Moderation:ReportExploit"] = true,
-        ["Security:FlagViolation"] = true,
-        ["AntiCheat:KickPlayer"] = true,
     }
 
     local function isBlocked(name)
         if not name then return false end
         if BlockedRemotes[name] then return true end
         local lower = name:lower()
-        return lower:find("integrity") or lower:find("violation") or lower:find("anticheat") 
-            or lower:find("moderation") or lower:find("kick") or lower:find("security")
+        return lower:find("integrity") or lower:find("violation") or lower:find("anticheat") or lower:find("moderation")
     end
 
-    -- Layer 1: Hook LocalPlayer.Kick
+    -- Hook LocalPlayer.Kick
     pcall(function()
         if typeof(hookfunction) == "function" and LocalPlayer then
             local oldKick
@@ -59,7 +56,7 @@ function AntiCheat.Init()
         end
     end)
 
-    -- Layer 2: Hook __namecall
+    -- Hook __namecall for remote filtering
     pcall(function()
         if typeof(hookmetamethod) == "function" then
             local oldNamecall
@@ -79,7 +76,7 @@ function AntiCheat.Init()
         end
     end)
 
-    -- Layer 3: Disable Runtime scripts
+    -- Disable Runtime scripts
     task.defer(function()
         pcall(function()
             if LocalPlayer then
@@ -98,7 +95,7 @@ function AntiCheat.Init()
         end)
     end)
 
-    print("[DKHUB]: 🛡️ Anti-Cheat Shield v2 Activated")
+    print("[DKHUB]: 🛡️ Anti-Cheat Shield Activated")
 end
 
 AntiCheat.Init()
@@ -129,75 +126,77 @@ local UILibrary = (function()
         local content = options.Content or ""
         local duration = options.Duration or 3.5
 
-        local container = CoreGui
-        local notifGui = container:FindFirstChild("DKHUB_Notif")
-        if not notifGui then
-            notifGui = Instance.new("ScreenGui")
-            notifGui.Name = "DKHUB_Notif"
-            notifGui.ResetOnSpawn = false
-            notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-            notifGui.Parent = container
-        end
-
-        local holder = notifGui:FindFirstChild("NotifHolder")
-        if not holder then
-            holder = Instance.new("Frame")
-            holder.Name = "NotifHolder"
-            holder.Size = UDim2.new(0, 340, 1, -40)
-            holder.Position = UDim2.new(1, -360, 0, 20)
-            holder.BackgroundTransparency = 1
-            holder.Parent = notifGui
-
-            local layout = Instance.new("UIListLayout")
-            layout.SortOrder = Enum.SortOrder.LayoutOrder
-            layout.Padding = UDim.new(0, 10)
-            layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
-            layout.Parent = holder
-        end
-
-        local card = Instance.new("Frame")
-        card.Size = UDim2.new(1, 0, 0, 80)
-        card.BackgroundColor3 = UILibrary.Theme.Surface
-        card.Parent = holder
-
-        local cardCorner = Instance.new("UICorner")
-        cardCorner.CornerRadius = UDim.new(0, 12)
-        cardCorner.Parent = card
-
-        local cardStroke = Instance.new("UIStroke")
-        cardStroke.Color = UILibrary.Theme.Primary
-        cardStroke.Thickness = 2
-        cardStroke.Parent = card
-
-        local titleLbl = Instance.new("TextLabel")
-        titleLbl.Size = UDim2.new(1, -20, 0, 22)
-        titleLbl.Position = UDim2.new(0, 15, 0, 8)
-        titleLbl.BackgroundTransparency = 1
-        titleLbl.Font = UILibrary.Theme.FontBold
-        titleLbl.Text = title
-        titleLbl.TextColor3 = UILibrary.Theme.Primary
-        titleLbl.TextSize = 14
-        titleLbl.Parent = card
-
-        local contentLbl = Instance.new("TextLabel")
-        contentLbl.Size = UDim2.new(1, -20, 0, 40)
-        contentLbl.Position = UDim2.new(0, 15, 0, 32)
-        contentLbl.BackgroundTransparency = 1
-        contentLbl.Font = UILibrary.Theme.Font
-        contentLbl.Text = content
-        contentLbl.TextColor3 = UILibrary.Theme.Text
-        contentLbl.TextSize = 12
-        contentLbl.TextWrapped = true
-        contentLbl.Parent = card
-
-        TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
-        
-        task.delay(duration, function()
-            if card and card.Parent then
-                TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 400, 0, 0)}):Play()
-                task.wait(0.3)
-                card:Destroy()
+        pcall(function()
+            local container = CoreGui
+            local notifGui = container:FindFirstChild("DKHUB_Notif")
+            if not notifGui then
+                notifGui = Instance.new("ScreenGui")
+                notifGui.Name = "DKHUB_Notif"
+                notifGui.ResetOnSpawn = false
+                notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+                notifGui.Parent = container
             end
+
+            local holder = notifGui:FindFirstChild("NotifHolder")
+            if not holder then
+                holder = Instance.new("Frame")
+                holder.Name = "NotifHolder"
+                holder.Size = UDim2.new(0, 340, 1, -40)
+                holder.Position = UDim2.new(1, -360, 0, 20)
+                holder.BackgroundTransparency = 1
+                holder.Parent = notifGui
+
+                local layout = Instance.new("UIListLayout")
+                layout.SortOrder = Enum.SortOrder.LayoutOrder
+                layout.Padding = UDim.new(0, 10)
+                layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+                layout.Parent = holder
+            end
+
+            local card = Instance.new("Frame")
+            card.Size = UDim2.new(1, 0, 0, 80)
+            card.BackgroundColor3 = UILibrary.Theme.Surface
+            card.Parent = holder
+
+            local cardCorner = Instance.new("UICorner")
+            cardCorner.CornerRadius = UDim.new(0, 12)
+            cardCorner.Parent = card
+
+            local cardStroke = Instance.new("UIStroke")
+            cardStroke.Color = UILibrary.Theme.Primary
+            cardStroke.Thickness = 2
+            cardStroke.Parent = card
+
+            local titleLbl = Instance.new("TextLabel")
+            titleLbl.Size = UDim2.new(1, -20, 0, 22)
+            titleLbl.Position = UDim2.new(0, 15, 0, 8)
+            titleLbl.BackgroundTransparency = 1
+            titleLbl.Font = UILibrary.Theme.FontBold
+            titleLbl.Text = title
+            titleLbl.TextColor3 = UILibrary.Theme.Primary
+            titleLbl.TextSize = 14
+            titleLbl.Parent = card
+
+            local contentLbl = Instance.new("TextLabel")
+            contentLbl.Size = UDim2.new(1, -20, 0, 40)
+            contentLbl.Position = UDim2.new(0, 15, 0, 32)
+            contentLbl.BackgroundTransparency = 1
+            contentLbl.Font = UILibrary.Theme.Font
+            contentLbl.Text = content
+            contentLbl.TextColor3 = UILibrary.Theme.Text
+            contentLbl.TextSize = 12
+            contentLbl.TextWrapped = true
+            contentLbl.Parent = card
+
+            TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+            
+            task.delay(duration, function()
+                if card and card.Parent then
+                    TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 400, 0, 0)}):Play()
+                    task.wait(0.3)
+                    pcall(function() card:Destroy() end)
+                end
+            end)
         end)
     end
 
@@ -205,15 +204,11 @@ local UILibrary = (function()
         options = options or {}
         local titleText = options.Title or "DKHUB"
 
-        local container = CoreGui
-        local existing = container:FindFirstChild("DKHUB_Main")
-        if existing then existing:Destroy() end
-
         local gui = Instance.new("ScreenGui")
         gui.Name = "DKHUB_Main"
         gui.ResetOnSpawn = false
         gui.DisplayOrder = 999999
-        gui.Parent = container
+        gui.Parent = CoreGui
 
         local mainFrame = Instance.new("Frame")
         mainFrame.Name = "MainFrame"
@@ -365,7 +360,6 @@ local UILibrary = (function()
         function windowObj:AddTab(options)
             options = options or {}
             local tabTitle = options.Title or "Tab"
-            local tabIdx = #windowObj.Tabs + 1
 
             local tabBtn = Instance.new("TextButton")
             tabBtn.Name = "TabBtn_" .. tabTitle
@@ -399,8 +393,7 @@ local UILibrary = (function()
             local tabObj = {
                 Title = tabTitle,
                 Button = tabBtn,
-                Container = container,
-                Index = tabIdx
+                Container = container
             }
 
             function tabObj:AddSection(title)
@@ -413,7 +406,6 @@ local UILibrary = (function()
                 sec.TextSize = 11
                 sec.TextXAlignment = Enum.TextXAlignment.Left
                 sec.Parent = container
-                return sec
             end
 
             function tabObj:AddToggle(id, options)
@@ -486,10 +478,6 @@ local UILibrary = (function()
                     TweenService:Create(card, TweenInfo.new(0.2), {BackgroundColor3 = UILibrary.Theme.Surface}):Play()
                 end)
 
-                function toggleObj:SetValue(val)
-                    updateToggle(val)
-                end
-
                 return toggleObj
             end
 
@@ -533,15 +521,6 @@ local UILibrary = (function()
                 windowObj.ActiveTab = tabObj
             end)
 
-            tabBtn.MouseEnter:Connect(function()
-                TweenService:Create(tabBtn, TweenInfo.new(0.15), {BackgroundColor3 = UILibrary.Theme.SurfaceLight, BackgroundTransparency = 0.3}):Play()
-            end)
-            tabBtn.MouseLeave:Connect(function()
-                if windowObj.ActiveTab ~= tabObj then
-                    TweenService:Create(tabBtn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 1}):Play()
-                end
-            end)
-
             table.insert(windowObj.Tabs, tabObj)
             return tabObj
         end
@@ -553,30 +532,20 @@ local UILibrary = (function()
         closeBtn.MouseButton1Click:Connect(function()
             TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -325, 0.5, -500)}):Play()
             task.wait(0.3)
-            gui:Destroy()
+            pcall(function() gui:Destroy() end)
         end)
 
         return windowObj
     end
 
-    function UILibrary:SelectTab(idx)
-        local win = UILibrary.ActiveWindow
-        if win and win.Tabs and win.Tabs[idx] then
-            win.Tabs[idx].Button:MouseButton1Click:Fire()
-        end
-    end
-
     return UILibrary
 end)()
-
-UILibrary.ActiveWindow = nil
 
 -- ============================================================================
 -- AUTOMATION SYSTEM
 -- ============================================================================
 local Automation = {
     Running = true,
-    IsUnloaded = false,
     Flags = {},
     Tasks = {}
 }
@@ -595,7 +564,7 @@ function Automation.ToggleTask(name, enabled, fn)
     else
         Automation.Flags[name] = false
         if Automation.Tasks[name] then
-            task.cancel(Automation.Tasks[name])
+            pcall(function() task.cancel(Automation.Tasks[name]) end)
             Automation.Tasks[name] = nil
         end
     end
@@ -633,14 +602,13 @@ end
 -- CREATE MAIN WINDOW
 -- ============================================================================
 local Window = UILibrary:CreateWindow({
-    Title = "🔴 DKHUB - Steal An Egg Hub v3 🔴"
+    Title = "🔴 DKHUB - Steal An Egg Hub v4 🔴"
 })
-UILibrary.ActiveWindow = Window
 
 local MainTab = Window:AddTab({Title = "Main"})
 
 MainTab:AddSection("AUTO FARMING")
-local AutoStealToggle = MainTab:AddToggle("AutoSteal", {
+MainTab:AddToggle("AutoSteal", {
     Title = "🎯 Auto Steal Eggs",
     Default = false,
     Callback = function(val)
@@ -648,7 +616,7 @@ local AutoStealToggle = MainTab:AddToggle("AutoSteal", {
     end
 })
 
-local AutoCollectToggle = MainTab:AddToggle("AutoCollect", {
+MainTab:AddToggle("AutoCollect", {
     Title = "💰 Auto Collect Income",
     Default = false,
     Callback = function(val)
@@ -657,7 +625,7 @@ local AutoCollectToggle = MainTab:AddToggle("AutoCollect", {
 })
 
 MainTab:AddSection("AUTO HATCH")
-local AutoHatchToggle = MainTab:AddToggle("AutoHatch", {
+MainTab:AddToggle("AutoHatch", {
     Title = "🥚 Auto Hatch Eggs",
     Default = false,
     Callback = function(val)
@@ -666,7 +634,7 @@ local AutoHatchToggle = MainTab:AddToggle("AutoHatch", {
 })
 
 MainTab:AddSection("AUTO UPGRADE")
-local AutoTreadmillToggle = MainTab:AddToggle("AutoTreadmill", {
+MainTab:AddToggle("AutoTreadmill", {
     Title = "⚡ Auto Treadmill Farm",
     Default = false,
     Callback = function(val)
@@ -674,7 +642,7 @@ local AutoTreadmillToggle = MainTab:AddToggle("AutoTreadmill", {
     end
 })
 
-local AutoUpgradeToggle = MainTab:AddToggle("AutoUpgradeBase", {
+MainTab:AddToggle("AutoUpgradeBase", {
     Title = "🏗️ Auto Upgrade Base",
     Default = false,
     Callback = function(val)
@@ -716,17 +684,18 @@ SettingsTab:AddButton({
         Automation.Running = false
         UILibrary:Notify({Title = "DKHUB", Content = "Script unloaded!", Duration = 2})
         task.wait(1)
-        Window.Gui:Destroy()
+        pcall(function() Window.Gui:Destroy() end)
     end
 })
 
-Window:AddTab({Title = "Main"}):Container:Parent:FindFirstChildOfClass("UIListLayout").Parent.Visible = true
+if Window.Tabs[1] then
+    Window.Tabs[1].Button:MouseButton1Click:Fire()
+end
 
 UILibrary:Notify({
-    Title = "DKHUB v3 Loaded",
+    Title = "DKHUB v4 Loaded",
     Content = "✓ Anti-Cheat Bypass Active\n✓ All Systems Ready\n✓ Premium UI Enabled",
     Duration = 5
 })
 
-print("[DKHUB v3] ✓ Production script loaded successfully!")
-print("[DKHUB v3] ✓ Execute: loadstring(game:HttpGet('...main_production.lua'))()") 
+print("[DKHUB v4] ✓ Production script loaded successfully!")
