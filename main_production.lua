@@ -84,7 +84,7 @@ function AntiCheat.Init()
     print("[DKHUB]: Anti-Cheat Shield Activated ✓")
 end
 
-AntiCheat.Init()
+-- AntiCheat.Init() intentionally disabled for UI-only startup.
 
 -- ============================================================================
 
