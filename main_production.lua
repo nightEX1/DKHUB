@@ -24,7 +24,7 @@ local VirtualUser = game:GetService("VirtualUser")
 -- ============================================================================
 local AntiCheat = {}
 
-function -- AntiCheat.Init() intentionally disabled for UI-only startup.
+function AntiCheat.Init()
     local gEnv = (typeof(getgenv) == "function" and getgenv()) or _G
     if gEnv._DHKUBBypassActive then return end
     gEnv._DHKUBBypassActive = true
