@@ -2,7 +2,7 @@
     DKHUB - Steal An Egg Hub (PRODUCTION v2 - FULL BYPASS)
     Complete Anti-Cheat Bypass + Stealth Mode + Premium UI
     Red & Dark Theme with Smooth Animations
-    Drag Icon + Toggle System + Full Automation
+    Drag Icon + Toggle System + UI Modules
 ]]
 
 if not game:IsLoaded() then game.Loaded:Wait() end
@@ -784,62 +784,8 @@ local UILibrary = (function()
 end)()
 
 -- ============================================================================
--- AUTOMATION SYSTEM
+-- UI-ONLY BUILD: automation scheduler removed.
 -- ============================================================================
-local Automation = {
-    Running = true,
-    IsUnloaded = false,
-    Flags = {},
-    Tasks = {}
-}
-
-function Automation.ToggleTask(name, enabled, fn)
-    if enabled then
-        Automation.Flags[name] = true
-        if not Automation.Tasks[name] then
-            Automation.Tasks[name] = task.spawn(function()
-                while Automation.Flags[name] and Automation.Running do
-                    pcall(fn)
-                    task.wait(0.5)
-                end
-            end)
-        end
-    else
-        Automation.Flags[name] = false
-        if Automation.Tasks[name] then
-            task.cancel(Automation.Tasks[name])
-            Automation.Tasks[name] = nil
-        end
-    end
-end
-
--- ============================================================================
--- MAIN FUNCTIONS
--- ============================================================================
-local MainFunctions = {
-    EggRarities = {"All", "BrainrotGod", "Secret", "Divine", "Cosmic", "Legendary", "Epic", "Rare", "Common"},
-    KnownEggTypes = {"Starter Egg", "Forest Egg", "Desert Egg", "Ocean Egg", "Mythic Egg"}
-}
-
-function MainFunctions.StepAutoSteal()
-    print("[DKHUB] ✓ Auto Steal Active")
-end
-
-function MainFunctions.StepAutoCollect()
-    print("[DKHUB] ✓ Auto Collect Active")
-end
-
-function MainFunctions.StepAutoHatch()
-    print("[DKHUB] ✓ Auto Hatch Active")
-end
-
-function MainFunctions.StepAutoTreadmill()
-    print("[DKHUB] ✓ Auto Treadmill Active")
-end
-
-function MainFunctions.StepAutoUpgradeBase()
-    print("[DKHUB] ✓ Auto Upgrade Base")
-end
 
 -- ============================================================================
 -- CREATE MAIN WINDOW
@@ -890,7 +836,7 @@ local SettingsTab = Window:AddTab({Title = "Settings"})
 SettingsTab:AddSection("SETTINGS")
 SettingsTab:AddToggle("CompactMode", {Title = "Compact mode", Description = "Keep the menu smaller to show more of the game.", Default = true})
 SettingsTab:AddToggle("Animations", {Title = "UI animations", Description = "Enable smooth transitions and feedback.", Default = true})
-SettingsTab:AddButton({Title = "Unload UI", Callback = function() Automation.Running = false; if Window.Gui then Window.Gui:Destroy() end end})
+SettingsTab:AddButton({Title = "Unload UI", Callback = function() if Window.Gui then Window.Gui:Destroy() end end})
 local info = Instance.new("TextLabel")
 info.Size = UDim2.new(1, 0, 0, 58)
 info.BackgroundColor3 = UILibrary.Theme.Surface
