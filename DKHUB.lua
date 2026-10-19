@@ -9,7 +9,6 @@ local UIS = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -276,22 +275,30 @@ local function CreateTab(name, icon)
     return P, select
 end
 
--- ========== เชื่อม AutoFarm กับ AuraService ในเกมของคุณ ==========
+-- ========== เชื่อม AutoFarm กับปุ่ม AutoAttack ของ HUD เกม ==========
 local function SetAutoFarm(enabled)
-    local remote = ReplicatedStorage:FindFirstChild("AuraToggle")
-        or ReplicatedStorage:WaitForChild("AuraToggle", 5)
-    if not remote or not remote:IsA("RemoteEvent") then
-        Notify("Auto Farm", "ไม่พบ AuraToggle — ติดตั้ง GameSystems ในเกมของคุณก่อน")
+    local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+        or LocalPlayer:WaitForChild("PlayerGui", 5)
+    local ui = playerGui and (playerGui:FindFirstChild("UI") or playerGui:WaitForChild("UI", 5))
+    local hud = ui and (ui:FindFirstChild("HUD") or ui:FindFirstChild("OldHUD"))
+    local bottom = hud and hud:FindFirstChild("Bottom")
+    local buttons = bottom and bottom:FindFirstChild("Buttons")
+    local autoAttack = (buttons and buttons:FindFirstChild("AutoAttack"))
+        or (bottom and bottom:FindFirstChild("AutoAttack"))
+    local mainButton = autoAttack and autoAttack:FindFirstChild("Main")
+
+    if not mainButton or not mainButton:IsA("GuiButton") then
+        Notify("Auto Farm", "หา UI AutoAttack ไม่พบใน PlayerGui")
         return
     end
 
     local ok, err = pcall(function()
-        remote:FireServer(enabled)
+        mainButton:Activate()
     end)
     if not ok then
-        Notify("Auto Farm", "สั่งงานไม่สำเร็จ: " .. tostring(err))
+        Notify("Auto Farm", "กดปุ่ม AutoAttack ไม่สำเร็จ: " .. tostring(err))
     else
-        Notify("Auto Farm", enabled and "เปิด Aura แล้ว" or "ปิด Aura แล้ว")
+        Notify("Auto Farm", enabled and "สั่งเปิด AutoAttack แล้ว" or "สั่งปิด AutoAttack แล้ว")
     end
 end
 
