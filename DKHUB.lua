@@ -9,6 +9,7 @@ local UIS = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -275,14 +276,23 @@ local function CreateTab(name, icon)
     return P, select
 end
 
--- ========== ฟังก์ชันหลัก (ใส่โค้ดของคุณตรงนี้) ==========
-local function StartAutoFarm()
-    task.spawn(function()
-        while Config.AutoFarm do
-            -- TODO: ใส่ logic Autofarm (ใช้ Config.FarmSpeed ได้)
-            task.wait(0.1)
-        end
+-- ========== เชื่อม AutoFarm กับ AuraService ในเกมของคุณ ==========
+local function SetAutoFarm(enabled)
+    local remote = ReplicatedStorage:FindFirstChild("AuraToggle")
+        or ReplicatedStorage:WaitForChild("AuraToggle", 5)
+    if not remote or not remote:IsA("RemoteEvent") then
+        Notify("Auto Farm", "ไม่พบ AuraToggle — ติดตั้ง GameSystems ในเกมของคุณก่อน")
+        return
+    end
+
+    local ok, err = pcall(function()
+        remote:FireServer(enabled)
     end)
+    if not ok then
+        Notify("Auto Farm", "สั่งงานไม่สำเร็จ: " .. tostring(err))
+    else
+        Notify("Auto Farm", enabled and "เปิด Aura แล้ว" or "ปิด Aura แล้ว")
+    end
 end
 
 local function StartAutoCollect()
@@ -345,7 +355,10 @@ end
 -- ========== TAB: AUTOFARM ==========
 local Farm = CreateTab("Autofarm", "🌾")
 Farm:Section("Farm")
-Farm:Toggle("Auto Farm", Config.AutoFarm, function(v) Config.AutoFarm = v; if v then StartAutoFarm() end end)
+Farm:Toggle("Auto Farm", Config.AutoFarm, function(v)
+    Config.AutoFarm = v
+    SetAutoFarm(v)
+end)
 Farm:Toggle("Auto Collect", Config.AutoCollect, function(v) Config.AutoCollect = v; if v then StartAutoCollect() end end)
 Farm:Slider("Farm Speed", 1, 100, Config.FarmSpeed, function(v) Config.FarmSpeed = v end)
 
